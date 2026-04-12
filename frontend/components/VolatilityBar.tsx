@@ -33,7 +33,7 @@ export function VolatilityBar({ volBps, regime, hedgeRatio }: Props) {
       >
         <span
           style={{
-            fontSize: 9,
+            fontSize: 12,
             color: "var(--text-dim)",
             letterSpacing: "0.1em",
           }}
@@ -42,7 +42,7 @@ export function VolatilityBar({ volBps, regime, hedgeRatio }: Props) {
         </span>
         <span
           style={{
-            fontSize: 11,
+            fontSize: 15,
             fontWeight: 700,
             color,
             fontFamily: "var(--font-hud), monospace",
@@ -51,7 +51,7 @@ export function VolatilityBar({ volBps, regime, hedgeRatio }: Props) {
           {volAnn}%{" "}
           <span
             style={{
-              fontSize: 9,
+              fontSize: 11,
               letterSpacing: "0.12em",
               fontFamily: "var(--font-orbitron), sans-serif",
             }}
@@ -64,7 +64,7 @@ export function VolatilityBar({ volBps, regime, hedgeRatio }: Props) {
       {/* Track */}
       <div
         style={{
-          height: 6,
+          height: 8,
           background: "rgba(255,255,255,0.05)",
           borderRadius: 3,
           overflow: "hidden",
@@ -110,12 +110,12 @@ export function VolatilityBar({ volBps, regime, hedgeRatio }: Props) {
           marginBottom: 4,
         }}
       >
-        <span style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+        <span style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
           HEDGE RATIO
         </span>
         <span
           style={{
-            fontSize: 11,
+            fontSize: 15,
             fontWeight: 700,
             color: "var(--cyan)",
             fontFamily: "var(--font-hud), monospace",
@@ -126,7 +126,7 @@ export function VolatilityBar({ volBps, regime, hedgeRatio }: Props) {
       </div>
       <div
         style={{
-          height: 4,
+          height: 6,
           background: "rgba(255,255,255,0.05)",
           borderRadius: 2,
           overflow: "hidden",

@@ -35,8 +35,8 @@ export function DeltaGauge({ deltaExposure, hedgeAmountUSD }: Props) {
       : "#ff3366";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-      <svg width={180} height={120} viewBox="0 0 180 120">
+    <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+      <svg width={220} height={150} viewBox="0 0 180 120">
         <defs>
           <filter id="gauge-glow">
             <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -90,7 +90,7 @@ export function DeltaGauge({ deltaExposure, hedgeAmountUSD }: Props) {
           x={CX}
           y={CY + 10}
           textAnchor="middle"
-          fontSize="18"
+          fontSize="22"
           fontWeight="800"
           fill={color}
           fontFamily="monospace"
@@ -102,7 +102,7 @@ export function DeltaGauge({ deltaExposure, hedgeAmountUSD }: Props) {
           x={CX}
           y={CY + 26}
           textAnchor="middle"
-          fontSize="8"
+          fontSize="10"
           fill="rgba(255,255,255,0.3)"
           fontFamily="monospace"
           letterSpacing="0.1em"
@@ -111,22 +111,22 @@ export function DeltaGauge({ deltaExposure, hedgeAmountUSD }: Props) {
         </text>
 
         {/* Min / Max labels */}
-        <text x="22" y="115" fontSize="8" fill="rgba(255,255,255,0.2)" fontFamily="monospace">0</text>
-        <text x="150" y="115" fontSize="8" fill="rgba(255,255,255,0.2)" fontFamily="monospace">1.0</text>
+        <text x="22" y="115" fontSize="10" fill="rgba(255,255,255,0.2)" fontFamily="monospace">0</text>
+        <text x="150" y="115" fontSize="10" fill="rgba(255,255,255,0.2)" fontFamily="monospace">1.0</text>
       </svg>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div>
-          <div style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: 2 }}>HEDGE REQUIRED</div>
-          <div style={{ fontSize: 16, fontWeight: 800, color, fontFamily: "var(--font-hud), monospace" }}>
+          <div style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: 4 }}>HEDGE REQUIRED</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color, fontFamily: "var(--font-hud), monospace" }}>
             ${hedgeAmountUSD.toFixed(2)}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: 2 }}>RISK LEVEL</div>
+          <div style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em", marginBottom: 4 }}>RISK LEVEL</div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: 15,
               fontWeight: 700,
               letterSpacing: "0.15em",
               color,

@@ -39,12 +39,12 @@ export function TickRangeVisual({ currentPrice, entryPrice, tickLower, tickUpper
           marginBottom: 6,
         }}
       >
-        <span style={{ fontSize: 9, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+        <span style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
           TICK RANGE
         </span>
         <span
           style={{
-            fontSize: 9,
+            fontSize: 11,
             color: inRange ? "var(--green)" : "var(--amber)",
             letterSpacing: "0.1em",
           }}
@@ -56,7 +56,7 @@ export function TickRangeVisual({ currentPrice, entryPrice, tickLower, tickUpper
       <div
         style={{
           position: "relative",
-          height: 28,
+          height: 34,
           background: "rgba(255,255,255,0.03)",
           borderRadius: 3,
           border: "1px solid var(--border)",
@@ -102,7 +102,7 @@ export function TickRangeVisual({ currentPrice, entryPrice, tickLower, tickUpper
       >
         <span
           style={{
-            fontSize: 9,
+            fontSize: 12,
             color: "var(--text-dim)",
             fontFamily: "var(--font-hud), monospace",
           }}
@@ -111,7 +111,7 @@ export function TickRangeVisual({ currentPrice, entryPrice, tickLower, tickUpper
         </span>
         <span
           style={{
-            fontSize: 9,
+            fontSize: 12,
             color: inRange ? "var(--green)" : "var(--amber)",
             fontFamily: "var(--font-hud), monospace",
           }}
@@ -120,7 +120,7 @@ export function TickRangeVisual({ currentPrice, entryPrice, tickLower, tickUpper
         </span>
         <span
           style={{
-            fontSize: 9,
+            fontSize: 12,
             color: "var(--text-dim)",
             fontFamily: "var(--font-hud), monospace",
           }}

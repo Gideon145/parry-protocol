@@ -70,16 +70,21 @@ const MOCK_STATUS: AgentStatus = {
 export default function Home() {
   const [status, setStatus] = useState<AgentStatus>(MOCK_STATUS);
   const [connected, setConnected] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>("--");
 
   const fetchStatus = useCallback(async () => {
     try {
-      const res = await fetch(`${AGENT_URL}/status`, {
-        signal: AbortSignal.timeout(2000),
+      const res = await fetch(`${AGENT_URL}/status?t=${Date.now()}`, {
+        signal: AbortSignal.timeout(5000),
+        cache: "no-store",
       });
       if (res.ok) {
         const data = await res.json();
         setStatus(data);
         setConnected(true);
+        setLastUpdated(new Date().toLocaleTimeString());
+      } else {
+        setConnected(false);
       }
     } catch {
       setConnected(false);
@@ -88,9 +93,38 @@ export default function Home() {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
+    const interval = setInterval(fetchStatus, 2000);
     return () => clearInterval(interval);
   }, [fetchStatus]);
+
+  useEffect(() => {
+    if (connected) return;
+    const demoInterval = setInterval(() => {
+      setStatus((prev) => {
+        const drift = (Math.random() - 0.5) * 2.2;
+        const nextPrice = Number((prev.currentPrice + drift).toFixed(2));
+        const nextIl = Math.max(0, Number((prev.ilPercent + (Math.random() - 0.5) * 0.12).toFixed(3)));
+        const nextDelta = Math.max(0, Math.min(1, Number((prev.deltaExposure + (Math.random() - 0.5) * 0.02).toFixed(4))));
+        const nextHedgeUsd = Math.max(0, Number((nextDelta * 2000 + Math.random() * 120).toFixed(2)));
+
+        const liveLog = `[${new Date().toLocaleTimeString()}] DEMO FEED | Price: $${nextPrice} | IL: ${nextIl}% | Δ: ${nextDelta} | Hedge: $${nextHedgeUsd}`;
+
+        return {
+          ...prev,
+          iteration: prev.iteration + 1,
+          currentPrice: nextPrice,
+          ilPercent: nextIl,
+          deltaExposure: nextDelta,
+          hedgeAmountUSD: nextHedgeUsd,
+          lastActivity: `Demo refresh @ $${nextPrice}`,
+          logs: [liveLog, ...prev.logs].slice(0, 8),
+        };
+      });
+      setLastUpdated(new Date().toLocaleTimeString());
+    }, 2000);
+
+    return () => clearInterval(demoInterval);
+  }, [connected]);
 
   const ilColor =
     status.ilPercent < 2
@@ -121,7 +155,7 @@ export default function Home() {
         style={{
           background: "var(--bg-deep)",
           borderBottom: "1px solid var(--border)",
-          height: 40,
+          height: 46,
           overflow: "hidden",
         }}
       >
@@ -132,7 +166,7 @@ export default function Home() {
             gap: 48,
             height: "100%",
             paddingLeft: 16,
-            fontSize: 13,
+            fontSize: 15,
             color: "var(--text-dim)",
             fontFamily: "var(--font-hud), monospace",
             whiteSpace: "nowrap",
@@ -185,29 +219,30 @@ export default function Home() {
       <div className="max-w-screen-2xl mx-auto px-4 py-8">
         {/* ── HERO INTRO SECTION ──────────────────────────────────── */}
         <div
+          className="animate-in"
           style={{
             background: "linear-gradient(135deg, rgba(0,255,136,0.08) 0%, rgba(102,0,204,0.06) 100%)",
             border: "1px solid rgba(0,255,136,0.2)",
             borderRadius: 4,
-            padding: "20px 24px",
+            padding: "24px 28px",
             marginBottom: 28,
             backdropFilter: "blur(8px)",
           }}
         >
           <div
             style={{
-              fontSize: 15,
+              fontSize: 22,
               fontWeight: 600,
               color: "var(--cyan)",
               letterSpacing: "0.08em",
               marginBottom: 8,
             }}
           >
-            📊 WHAT IS PARRY PROTOCOL?
+            WHAT IS PARRY PROTOCOL?
           </div>
           <div
             style={{
-              fontSize: 13,
+              fontSize: 17,
               lineHeight: 1.6,
               color: "var(--text-bright)",
               marginBottom: 12,
@@ -220,26 +255,27 @@ export default function Home() {
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: 16,
-              fontSize: 12,
+              fontSize: 15,
               color: "var(--text-dim)",
               lineHeight: 1.5,
             }}
           >
             <div>
-              <span style={{ color: "var(--green)" }}>✓ MONITOR</span> ETH/USDC price volatility in real-time<br/>
-              <span style={{ color: "var(--green)" }}>✓ COMPUTE</span> delta exposure using Uniswap V3 math<br/>
-              <span style={{ color: "var(--green)" }}>✓ HEDGE</span> positions via autonomous swaps
+              <span style={{ color: "var(--green)" }}>MONITOR</span> ETH/USDC price volatility in real-time<br/>
+              <span style={{ color: "var(--green)" }}>COMPUTE</span> delta exposure using Uniswap V3 math<br/>
+              <span style={{ color: "var(--green)" }}>HEDGE</span> positions via autonomous swaps
             </div>
             <div>
-              <span style={{ color: "var(--green)" }}>✓ COLLECT</span> trading fees & reinvest them (earn-on-earn)<br/>
-              <span style={{ color: "var(--green)" }}>✓ RECORD</span> all transactions on-chain (100% verifiable)<br/>
-              <span style={{ color: "var(--green)" }}>✓ PROTECT</span> LPs with IL insurance certificates
+              <span style={{ color: "var(--green)" }}>COLLECT</span> trading fees & reinvest them (earn-on-earn)<br/>
+              <span style={{ color: "var(--green)" }}>RECORD</span> all transactions on-chain (100% verifiable)<br/>
+              <span style={{ color: "var(--green)" }}>PROTECT</span> LPs with IL insurance certificates
             </div>
           </div>
         </div>
 
         {/* ── Header ─────────────────────────────────────────────────── */}
         <header
+          className="animate-in"
           style={{
             display: "flex",
             alignItems: "center",
@@ -253,7 +289,7 @@ export default function Home() {
               <h1
                 style={{
                   fontFamily: "var(--font-orbitron), sans-serif",
-                  fontSize: 36,
+                  fontSize: 44,
                   fontWeight: 800,
                   letterSpacing: "0.1em",
                   color: "var(--cyan)",
@@ -264,7 +300,7 @@ export default function Home() {
               </h1>
               <p
                 style={{
-                  fontSize: 12,
+                  fontSize: 15,
                   color: "var(--text-dim)",
                   letterSpacing: "0.2em",
                   marginTop: 4,
@@ -289,7 +325,7 @@ export default function Home() {
               />
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 14,
                   color: connected ? "var(--green)" : "var(--red)",
                   fontFamily: "var(--font-hud), monospace",
                   letterSpacing: "0.1em",
@@ -300,7 +336,7 @@ export default function Home() {
             </div>
             <div
               style={{
-                fontSize: 10,
+                fontSize: 13,
                 color: "var(--text-dim)",
                 fontFamily: "var(--font-hud), monospace",
                 textAlign: "right",
@@ -312,12 +348,16 @@ export default function Home() {
                   ? `${status.vaultAddress.slice(0, 10)}...`
                   : "Deploy vault first"}
               </div>
+              <div style={{ color: "var(--cyan)", marginTop: 4, fontSize: 12 }}>
+                LAST SYNC: {lastUpdated}
+              </div>
             </div>
           </div>
         </header>
 
         {/* ── Row 1: Core metrics ────────────────────────────────────── */}
         <div
+          className="animate-in"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
@@ -366,6 +406,7 @@ export default function Home() {
 
         {/* ── Row 2: Main panels ─────────────────────────────────────── */}
         <div
+          className="animate-in"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 280px",
@@ -374,7 +415,7 @@ export default function Home() {
           }}
         >
           {/* Position status */}
-          <div className="card-hud p-5 corner-brackets">
+          <div className="card-hud hover-card p-5 corner-brackets">
             <div
               style={{
                 fontSize: 12,
@@ -417,8 +458,8 @@ export default function Home() {
                   title={status.inRange ? "Position is generating fees" : "Position is out of range"}
                 >
                   {status.inRange
-                    ? "▶ In range — fees accruing"
-                    : "⚠ Out of range — no fees"}
+                    ? "In range - fees accruing"
+                    : "Out of range - no fees"}
                 </div>
               </div>
             </div>
@@ -466,7 +507,7 @@ export default function Home() {
 
           {/* Delta + Volatility gauges */}
           <div
-            className="card-hud p-5"
+            className="card-hud hover-card p-5"
             style={{ display: "flex", flexDirection: "column", gap: 24 }}
           >
             <div
@@ -496,7 +537,7 @@ export default function Home() {
           </div>
 
           {/* OnchainOS modules */}
-          <div className="card-hud p-5">
+          <div className="card-hud hover-card p-5">
             <div
               style={{
                 fontSize: 12,
@@ -533,7 +574,7 @@ export default function Home() {
                 >
                   <span
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: "var(--text-dim)",
                       fontFamily: "var(--font-hud), monospace",
                     }}
@@ -542,7 +583,7 @@ export default function Home() {
                   </span>
                   <span
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: mod.color,
                       letterSpacing: "0.1em",
                     }}
@@ -564,6 +605,7 @@ export default function Home() {
               <div
                 style={{
                   fontSize: 9,
+                  fontSize: 12,
                   color: "var(--text-dim)",
                   marginBottom: 6,
                   letterSpacing: "0.1em",
@@ -580,7 +622,7 @@ export default function Home() {
                 <div
                   key={tool}
                   style={{
-                    fontSize: 9,
+                    fontSize: 12,
                     color: "var(--cyan)",
                     lineHeight: 1.9,
                     fontFamily: "var(--font-hud), monospace",
@@ -593,8 +635,68 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ── Evidence Links ───────────────────────────────────────── */}
+        <div className="card-hud hover-card p-5 animate-in" style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              fontSize: 15,
+              color: "var(--text-dim)",
+              letterSpacing: "0.15em",
+              marginBottom: 14,
+            }}
+          >
+            DEMO EVIDENCE LINKS
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+            {[
+              {
+                label: "Last Hedge TX",
+                href: status.lastHedgeTx && status.lastHedgeTx.startsWith("0x")
+                  ? `https://www.oklink.com/xlayer-test/tx/${status.lastHedgeTx}`
+                  : "https://www.oklink.com/xlayer-test",
+              },
+              {
+                label: "Agent Wallet Explorer",
+                href: status.agentWallet && status.agentWallet.startsWith("0x")
+                  ? `https://www.oklink.com/xlayer-test/address/${status.agentWallet}`
+                  : "https://www.oklink.com/xlayer-test",
+              },
+              {
+                label: "Vault Contract",
+                href: status.vaultAddress && status.vaultAddress.startsWith("0x")
+                  ? `https://www.oklink.com/xlayer-test/address/${status.vaultAddress}`
+                  : "https://www.oklink.com/xlayer-test",
+              },
+              {
+                label: "Agent Status API",
+                href: `${AGENT_URL}/status`,
+              },
+              {
+                label: "MCP Health",
+                href: "https://ample-wisdom-production-f4c9.up.railway.app/health",
+              },
+              {
+                label: "x402 Payment Info",
+                href: "https://radiant-recreation-production-f473.up.railway.app/payment-info",
+              },
+            ].map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                className="evidence-btn"
+                title={`Open ${item.label}`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
         {/* ── Row 3: Terminal + Cycle ────────────────────────────────── */}
         <div
+          className="animate-in"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
@@ -602,7 +704,7 @@ export default function Home() {
             marginBottom: 16,
           }}
         >
-          <div className="card-hud p-5">
+          <div className="card-hud hover-card p-5">
             <div
               style={{
                 fontSize: 12,
@@ -625,7 +727,7 @@ export default function Home() {
           </div>
 
           {/* Earn-pay-earn cycle */}
-          <div className="card-hud p-5">
+          <div className="card-hud hover-card p-5">
             <div
               style={{
                 fontSize: 12,
@@ -714,7 +816,7 @@ export default function Home() {
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 13,
                         color,
                         letterSpacing: "0.05em",
                         fontFamily: "var(--font-orbitron), sans-serif",
@@ -725,7 +827,7 @@ export default function Home() {
                     </div>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 12,
                         color: "var(--text-dim)",
                         marginTop: 2,
                       }}
@@ -752,6 +854,7 @@ export default function Home() {
 
         {/* ── Footer ─────────────────────────────────────────────────── */}
         <footer
+          className="animate-in"
           style={{
             borderTop: "1px solid var(--border)",
             paddingTop: 16,
