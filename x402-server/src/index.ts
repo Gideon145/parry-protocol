@@ -151,6 +151,7 @@ app.post("/protect/demo", async (req: Request, res: Response) => {
       tickUpper: req.body.tickUpper ?? 600,
       activatedAt: Date.now(),
       paidUntil: Date.now() + durationDays * 24 * 60 * 60 * 1000,
+      premiumPaid: "0",
     };
     activeProtections.set(policyId, protection);
     console.log(`[x402] Demo activation: ${policyId} for ${lp}`);
