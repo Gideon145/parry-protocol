@@ -28,6 +28,7 @@ app.use(cors());
 const PORT = parseInt(process.env.PORT || process.env.X402_PORT || "3002", 10);
 const VAULT_ADDRESS = process.env.VAULT_ADDRESS || "";
 const AGENT_WALLET = process.env.AGENT_WALLET || "";
+const ALLOW_DEMO_AUTH_BYPASS = process.env.ALLOW_DEMO_AUTH_BYPASS === "true";
 
 // Price per protection period (in OKB, 18 decimals)
 const PRICE_PER_DAY_OKB = ethers.parseEther("0.001"); // 0.001 OKB/day
@@ -241,8 +242,15 @@ function x402Middleware(req: Request, res: Response, next: NextFunction): void {
     (req as Request & { paymentAmount?: string; payer?: string }).payer = authData.payer;
     next();
   } catch {
-    // For demo: allow through with mock auth
-    console.log("[x402] Demo mode: bypassing payment verification");
+    if (!ALLOW_DEMO_AUTH_BYPASS) {
+      res.status(401).json({
+        error: "Invalid x402 authorization",
+        message: "Malformed or unverifiable X-Payment-Authorization header",
+      });
+      return;
+    }
+    // Optional demo bypass (disabled by default). Enable only when explicitly set.
+    console.log("[x402] Demo bypass enabled: accepting mock payment authorization");
     (req as Request & { paymentAmount?: string }).paymentAmount = "0.001";
     next();
   }

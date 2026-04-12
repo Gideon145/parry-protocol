@@ -18,11 +18,15 @@ export class FeeCompounder {
   private client: OnchainOSClient;
   private agentWallet: string;
   private lastCompoundBlock: Map<string, number> = new Map();
-  private readonly COMPOUND_INTERVAL_BLOCKS = 100; // ~5 min on X Layer
+  private readonly COMPOUND_INTERVAL_BLOCKS: number;
 
   constructor(client: OnchainOSClient, agentWallet: string) {
     this.client = client;
     this.agentWallet = agentWallet;
+    const configuredInterval = parseInt(process.env.COMPOUND_INTERVAL_BLOCKS || "100", 10);
+    this.COMPOUND_INTERVAL_BLOCKS = Number.isFinite(configuredInterval) && configuredInterval > 0
+      ? configuredInterval
+      : 100;
   }
 
   /**
@@ -34,11 +38,12 @@ export class FeeCompounder {
     tickLower: number,
     tickUpper: number,
     currentBlock: number,
+    force = false,
     chain = "xlayer"
   ): Promise<{ compounded: boolean; feesCollected?: string; reinvestedAmount?: string }> {
     const lastBlock = this.lastCompoundBlock.get(investmentId) || 0;
 
-    if (currentBlock - lastBlock < this.COMPOUND_INTERVAL_BLOCKS) {
+    if (!force && currentBlock - lastBlock < this.COMPOUND_INTERVAL_BLOCKS) {
       return { compounded: false };
     }
 

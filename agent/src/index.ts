@@ -33,6 +33,9 @@ const CONFIG = {
   // Agent loop timing
   loopIntervalMs: parseInt(process.env.LOOP_INTERVAL_MS || "15000"), // 15s
   premiumCollectEveryN: parseInt(process.env.PREMIUM_COLLECT_EVERY_N || "20"),
+  forceCompoundEveryN: parseInt(process.env.FORCE_COMPOUND_EVERY_N || "0"),
+  investmentId: process.env.INVESTMENT_ID || "demo-pool-001",
+  positionTokenId: process.env.POSITION_TOKEN_ID || "1",
 
   // Status server port (for frontend)
   statusPort: parseInt(process.env.STATUS_PORT || "3001"),
@@ -188,8 +191,8 @@ async function main(): Promise<void> {
   const demoPolicy = {
     policyId: CONFIG.policyId,   // use real on-chain policyId if available
     pool: "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",  // WETH on X Layer
-    tokenId: "1",
-    investmentId: "demo-pool-001",
+    tokenId: CONFIG.positionTokenId,
+    investmentId: CONFIG.investmentId,
     tickLower: -600,
     tickUpper: 600,
     liquidity: BigInt("1000000000000000000"), // 1e18
@@ -332,16 +335,20 @@ async function main(): Promise<void> {
         } else {
           const provider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
           const currentBlock = await provider.getBlockNumber();
+          const forceCompound = CONFIG.forceCompoundEveryN > 0 && (iteration % CONFIG.forceCompoundEveryN === 0);
           const result = await compounder.maybeCompound(
             demoPolicy.investmentId,
             demoPolicy.tokenId,
             demoPolicy.tickLower,
             demoPolicy.tickUpper,
-            currentBlock
+            currentBlock,
+            forceCompound
           );
           if (result.compounded) {
             state.totalFeesCompounded++;
             addLog(`[COMPOUND] Fees collected: ${result.feesCollected}`);
+          } else if (forceCompound) {
+            addLog(`[COMPOUND] Forced attempt executed (no reinvest this cycle)`);
           }
         }
       }
