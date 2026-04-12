@@ -84,43 +84,50 @@ app.get("/protect/status/:policyId", (req: Request, res: Response) => {
  *   X-Payment-Currency: OKB
  */
 app.post("/protect/activate", x402Middleware, async (req: Request, res: Response) => {
-  const { lp, poolAddress, tickLower, tickUpper, durationDays = 1 } = req.body;
+  try {
+    const { lp, poolAddress, durationDays = 1 } = req.body;
+    const tickLower = req.body.tickLower !== undefined ? parseInt(String(req.body.tickLower)) : -887220;
+    const tickUpper = req.body.tickUpper !== undefined ? parseInt(String(req.body.tickUpper)) : 887220;
 
-  if (!lp || !poolAddress) {
-    return res.status(400).json({ error: "lp and poolAddress required" });
+    if (!lp || !poolAddress) {
+      return res.status(400).json({ error: "lp and poolAddress required" });
+    }
+
+    const policyId = ethers.keccak256(
+      ethers.AbiCoder.defaultAbiCoder().encode(
+        ["address", "address", "uint256"],
+        [lp, poolAddress, BigInt(Date.now())]
+      )
+    );
+
+    const protection: ActiveProtection = {
+      policyId,
+      lp,
+      paidUntil: Date.now() + Number(durationDays) * 24 * 60 * 60 * 1000,
+      poolAddress,
+      tickLower: isNaN(tickLower) ? -887220 : tickLower,
+      tickUpper: isNaN(tickUpper) ? 887220 : tickUpper,
+      premiumPaid: String((req as Request & { paymentAmount?: string }).paymentAmount || "0"),
+      activatedAt: Date.now(),
+    };
+
+    activeProtections.set(policyId, protection);
+
+    console.log(`[x402] Protection activated: ${policyId} for ${lp}`);
+    console.log(`[x402] Duration: ${durationDays} days | Paid until: ${new Date(protection.paidUntil).toISOString()}`);
+
+    return res.status(201).json({
+      policyId,
+      message: "PARRY IL protection activated",
+      protectedUntil: new Date(protection.paidUntil).toISOString(),
+      vaultAddress: VAULT_ADDRESS,
+      agentWallet: AGENT_WALLET,
+      coverage: "IL protection active — Parry agent monitoring your position",
+    });
+  } catch (err) {
+    console.error("[x402] activate error:", err);
+    return res.status(500).json({ error: "Internal error", detail: String(err) });
   }
-
-  const policyId = ethers.keccak256(
-    ethers.AbiCoder.defaultAbiCoder().encode(
-      ["address", "address", "uint256"],
-      [lp, poolAddress, Date.now()]
-    )
-  );
-
-  const protection: ActiveProtection = {
-    policyId,
-    lp,
-    paidUntil: Date.now() + durationDays * 24 * 60 * 60 * 1000,
-    poolAddress,
-    tickLower: parseInt(tickLower),
-    tickUpper: parseInt(tickUpper),
-    premiumPaid: String((req as Request & { paymentAmount?: string }).paymentAmount || "0"),
-    activatedAt: Date.now(),
-  };
-
-  activeProtections.set(policyId, protection);
-
-  console.log(`[x402] Protection activated: ${policyId} for ${lp}`);
-  console.log(`[x402] Duration: ${durationDays} days | Paid until: ${new Date(protection.paidUntil).toISOString()}`);
-
-  return res.status(201).json({
-    policyId,
-    message: "PARRY IL protection activated",
-    protectedUntil: new Date(protection.paidUntil).toISOString(),
-    vaultAddress: VAULT_ADDRESS,
-    agentWallet: AGENT_WALLET,
-    coverage: "IL protection active — Parry agent monitoring your position",
-  });
 });
 
 /**
@@ -128,24 +135,29 @@ app.post("/protect/activate", x402Middleware, async (req: Request, res: Response
  * Extend existing protection with x402 payment
  */
 app.post("/protect/extend/:policyId", x402Middleware, async (req: Request, res: Response) => {
-  const policy = activeProtections.get(req.params.policyId);
-  if (!policy) {
-    return res.status(404).json({ error: "Policy not found" });
+  try {
+    const policy = activeProtections.get(req.params.policyId);
+    if (!policy) {
+      return res.status(404).json({ error: "Policy not found" });
+    }
+
+    const durationDays = Number(req.body.durationDays || 1);
+    const extensionMs = durationDays * 24 * 60 * 60 * 1000;
+    const baseTime = Math.max(policy.paidUntil, Date.now());
+    policy.paidUntil = baseTime + extensionMs;
+
+    console.log(`[x402] Protection extended: ${req.params.policyId} until ${new Date(policy.paidUntil).toISOString()}`);
+
+    return res.json({
+      policyId: req.params.policyId,
+      extended: true,
+      newPaidUntil: new Date(policy.paidUntil).toISOString(),
+      addedDays: durationDays,
+    });
+  } catch (err) {
+    console.error("[x402] extend error:", err);
+    return res.status(500).json({ error: "Internal error", detail: String(err) });
   }
-
-  const { durationDays = 1 } = req.body;
-  const extensionMs = durationDays * 24 * 60 * 60 * 1000;
-  const baseTime = Math.max(policy.paidUntil, Date.now());
-  policy.paidUntil = baseTime + extensionMs;
-
-  console.log(`[x402] Protection extended: ${req.params.policyId} until ${new Date(policy.paidUntil).toISOString()}`);
-
-  return res.json({
-    policyId: req.params.policyId,
-    extended: true,
-    newPaidUntil: new Date(policy.paidUntil).toISOString(),
-    addedDays: durationDays,
-  });
 });
 
 /**

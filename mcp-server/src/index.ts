@@ -379,49 +379,135 @@ function computeOptimalTicks(currentPrice: number, annualizedVolBps: number, cov
   return { tickLower, tickUpper, priceLower, priceUpper };
 }
 
-// Start
+// ─────────────────────────────────────────────────────────────────────────────
+// HTTP API — lets judges call MCP tools directly without Claude Desktop
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TOOL_HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
+  get_agent_status: async () => {
+    try {
+      const r = await axios.get(`${AGENT_STATUS_URL}/status`, { timeout: 3000 });
+      const s = r.data;
+      return {
+        running: s.running,
+        iteration: s.iteration,
+        currentPrice: `$${s.currentPrice?.toFixed(2)}`,
+        ilPercent: `${s.ilPercent?.toFixed(3)}%`,
+        deltaExposure: `${s.deltaExposure?.toFixed(6)} ETH-equivalent`,
+        hedgeAmountUSD: `$${s.hedgeAmountUSD?.toFixed(2)}`,
+        volatility: `${((s.volBps || 0) / 100).toFixed(1)}% annualized [${s.volRegime}]`,
+        hedgeRatio: `${((s.hedgeRatio || 0) * 100).toFixed(0)}%`,
+        totalHedgesTx: s.totalHedgesTx,
+        onChainTxCount: s.onChainTxCount,
+        lastHedgeTx: s.lastHedgeTx,
+        recentLogs: s.logs?.slice(0, 5),
+      };
+    } catch {
+      return { error: "Agent status unavailable" };
+    }
+  },
+  get_il_exposure: async (args) => {
+    const { entryPrice, currentPrice, tickLower, tickUpper } = args as Record<string, number>;
+    const il = computeILPercent(entryPrice, currentPrice, tickLower, tickUpper);
+    return { ilPercent: `${il.toFixed(4)}%`, priceRatio: (currentPrice / entryPrice).toFixed(4), entryPrice: `$${entryPrice}`, currentPrice: `$${currentPrice}` };
+  },
+  get_delta_exposure: async (args) => {
+    const liquidity = BigInt(String(args.liquidityE18 || "1000000000000000000"));
+    const result = computeDelta(Number(args.currentPrice), Number(args.entryPrice), Number(args.tickLower), Number(args.tickUpper), liquidity, Number(args.hedgeRatio || 0.7));
+    return { deltaExposure: `${result.delta.toFixed(6)} ETH-eq`, hedgeAmountUSD: `$${result.hedgeAmountUSD.toFixed(2)}`, ilPercent: `${result.ilPercent.toFixed(3)}%`, inRange: result.inRange };
+  },
+  compute_optimal_ticks: async (args) => {
+    const result = computeOptimalTicks(Number(args.currentPrice), Number(args.annualizedVolBps), Number(args.coverageHorizonDays), Number(args.confidenceLevel || 1.96));
+    return { tickLower: result.tickLower, tickUpper: result.tickUpper, priceLower: `$${result.priceLower.toFixed(2)}`, priceUpper: `$${result.priceUpper.toFixed(2)}` };
+  },
+  check_premium_cost: async (args) => {
+    const agentVol = await getAgentVol();
+    const vol = (Number(args.annualizedVolBps || agentVol || 5000)) / 10000;
+    const T = Number(args.durationDays) / 365;
+    const premiumFraction = 0.001 * vol * Math.sqrt(T);
+    const premiumUSD = Number(args.coverageAmountUSD) * premiumFraction / 20;
+    const premiumOKB = premiumUSD / 45;
+    return { premiumUSD: `$${premiumUSD.toFixed(4)}`, premiumOKB: `${premiumOKB.toFixed(6)} OKB`, durationDays: args.durationDays };
+  },
+  get_vault_stats: async () => {
+    try {
+      const r = await axios.get(`${AGENT_STATUS_URL}/status`, { timeout: 3000 });
+      const s = r.data;
+      return { vaultAddress: s.vaultAddress, agentWallet: s.agentWallet, totalHedgesExecuted: s.totalHedgesTx, onChainTxCount: s.onChainTxCount, network: "X Layer Testnet (Chain ID 1952)" };
+    } catch {
+      return { error: "Vault stats unavailable" };
+    }
+  },
+};
+
+// Start stdio transport
 const transport = new StdioServerTransport();
 server.connect(transport).then(() => {
   console.error("PARRY MCP Server running (stdio)");
 });
 
-const candidatePorts = Array.from(
-  new Set([
-    PORT,
-    3003,
-    8080,
-  ])
-);
+const candidatePorts = Array.from(new Set([PORT, 3003, 8080]));
 
 for (const p of candidatePorts) {
   try {
     const s = http.createServer((req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Content-Type", "application/json");
+
+      if (req.method === "OPTIONS") { res.writeHead(204); res.end(); return; }
+
       if (req.url === "/health") {
-        res.writeHead(200, { "Content-Type": "application/json" });
+        res.writeHead(200);
         res.end(JSON.stringify({ ok: true, service: "PARRY-mcp-server", port: p }));
         return;
       }
 
-      if (req.url === "/") {
-        res.writeHead(200, { "Content-Type": "application/json" });
+      if (req.url === "/" || req.url === "/tools") {
+        res.writeHead(200);
         res.end(JSON.stringify({
           ok: true,
           service: "PARRY-mcp-server",
-          transport: "stdio",
-          port: p,
+          description: "Call MCP tools via POST /call/:toolName with JSON body as args",
+          tools: Object.keys(TOOL_HANDLERS),
+          examples: {
+            get_agent_status: `POST /call/get_agent_status  {}`,
+            get_il_exposure: `POST /call/get_il_exposure  {"entryPrice":2000,"currentPrice":2100,"tickLower":-600,"tickUpper":600}`,
+            compute_optimal_ticks: `POST /call/compute_optimal_ticks  {"currentPrice":2000,"annualizedVolBps":6000,"coverageHorizonDays":7}`,
+            check_premium_cost: `POST /call/check_premium_cost  {"coverageAmountUSD":1000,"durationDays":7}`,
+          },
         }));
         return;
       }
 
-      res.writeHead(404, { "Content-Type": "application/json" });
+      // POST /call/:toolName  — HTTP callable MCP tool dispatcher
+      const callMatch = req.url?.match(/^\/call\/([a-z_]+)$/);
+      if (callMatch && req.method === "POST") {
+        const toolName = callMatch[1];
+        const handler = TOOL_HANDLERS[toolName];
+        if (!handler) {
+          res.writeHead(404);
+          res.end(JSON.stringify({ error: `Unknown tool: ${toolName}`, available: Object.keys(TOOL_HANDLERS) }));
+          return;
+        }
+        let body = "";
+        req.on("data", (chunk: string) => { body += chunk; });
+        req.on("end", () => {
+          let args: Record<string, unknown> = {};
+          try { args = body ? JSON.parse(body) : {}; } catch { /* empty body ok */ }
+          handler(args)
+            .then((result) => { res.writeHead(200); res.end(JSON.stringify({ tool: toolName, result })); })
+            .catch((err) => { res.writeHead(500); res.end(JSON.stringify({ error: String(err) })); });
+        });
+        return;
+      }
+
+      res.writeHead(404);
       res.end(JSON.stringify({ error: "not found" }));
     }).listen(p, () => {
-      console.error(`PARRY MCP health server listening on :${p}`);
+      console.error(`PARRY MCP HTTP server listening on :${p} — tools callable via POST /call/:toolName`);
     });
-    s.on("error", () => {
-      // Ignore bind collisions and keep trying other ports.
-    });
-  } catch {
-    // Try next candidate port.
-  }
+    s.on("error", () => { /* ignore port collision */ });
+  } catch { /* try next */ }
 }
