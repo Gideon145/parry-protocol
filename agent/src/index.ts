@@ -104,6 +104,7 @@ interface AgentStatus {
   chainId: number;
   signerLoaded: boolean;
   onChainTxCount: number;
+  startTimestamp: string;
   logs: string[];
 }
 
@@ -132,6 +133,7 @@ const state: AgentStatus = {
   chainId: CONFIG.chainId,
   signerLoaded: CONFIG.privateKey.length > 10,
   onChainTxCount: 0,
+  startTimestamp: new Date().toISOString(),
   logs: [],
 };
 

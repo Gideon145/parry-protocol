@@ -81,13 +81,25 @@ const PRESETS: PresetDef[] = [
   },
 ];
 
-function resolveIntent(query: string): PresetDef | null {
-  const q = query.toLowerCase();
+const FALLBACK_RESPONSES: Record<string, string> = {
+  help: `Parry Protocol — what you can ask:\n\n▸ "what is my IL?" → impermanent loss % for the live position\n▸ "show delta" → ETH-equivalent directional exposure + hedge size\n▸ "optimal ticks" → statistically optimal tick range at current vol\n▸ "agent status" → live iteration, price, on-chain TX count\n▸ "estimate premium" → protection cost in OKB for $1000 coverage`,
+  "what is il": `Impermanent Loss (IL) is the hidden cost of being a Uniswap V3 LP.\n\nWhen ETH price moves away from your entry price, your position ends up worth less than if you had simply held ETH+USDC in a wallet. Parry quantifies this loss every 15 seconds and executes offsetting hedge swaps to keep your position delta-neutral — so IL cannot compound.\n\nTry: "what is my IL?" to see the current exposure.`,
+  "how does this work": `Parry runs a fully autonomous agent loop every 15 seconds:\n\n1. Fetches live ETH price via OnchainOS market skills\n2. Computes delta exposure using exact Uniswap V3 math: Δ = L × (1/√S − 1/√p_b)\n3. Gets realized volatility to adjust hedge ratio (HIGH vol → hedge more)\n4. If delta > threshold, swaps ETH→USDC via OKX DEX to neutralize exposure\n5. Records every action on X Layer Testnet — fully on-chain, fully verifiable\n6. Compounds accrued trading fees back into the LP position\n\nThe hedge API is gated by an x402 micropayment — pay only when protected.`,
+  explain: `Parry Protocol is an autonomous impermanent loss protection agent for Uniswap V3 LPs on X Layer.\n\nIt watches your LP position, computes how much ETH price movement is hurting you, and automatically executes hedge swaps to offset that loss — 24/7, no human needed.\n\nBuilt with: OnchainOS skills (price + vol feeds), x402 payment protocol, MCP server (this interface), smart contracts on X Layer Testnet, and a Next.js dashboard you're looking at right now.\n\nAsk: "agent status", "what is my IL?", or "how does this work"`,
+  "what can you do": `I can answer live questions about the Parry agent:\n\n• Current IL exposure on the monitored position\n• Delta exposure (how much ETH risk the LP is carrying)\n• Statistically optimal tick ranges given current volatility\n• Live agent status: price, iteration, on-chain TX count\n• Estimated protection premium cost\n\nEvery answer pulls real-time data from the running agent — not mock data.`,
+};
+
+function resolveIntent(query: string): PresetDef | "fallback" | null {
+  const q = query.toLowerCase().trim();
+  if (FALLBACK_RESPONSES[q]) return "fallback";
+  if (/\bhelp\b|what can|capabilities/.test(q)) return "fallback";
+  if (/what is il|explain il|impermanent loss\??$/.test(q)) return "fallback";
+  if (/how does|how it works|explain/.test(q)) return "fallback";
   if (/il|impermanent|loss/.test(q)) return PRESETS[0];
   if (/delta|exposure|hedge amount/.test(q)) return PRESETS[1];
   if (/tick|range|optimal|rebalance/.test(q)) return PRESETS[2];
   if (/status|agent|running|iteration|price/.test(q)) return PRESETS[3];
-  if (/premium|cost|protect|fee|cover/.test(q)) return PRESETS[4];
+  if (/premium|cost|protect|cover/.test(q)) return PRESETS[4];
   return null;
 }
 
@@ -131,13 +143,25 @@ export function AgentChat() {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
     setNoMatch(false);
-    const preset = resolveIntent(trimmed);
-    if (!preset) {
+    const intent = resolveIntent(trimmed);
+    if (!intent) {
       setNoMatch(true);
       return;
     }
     setInputValue("");
-    await callPreset({ ...preset, label: trimmed });
+    if (intent === "fallback") {
+      // Find the best matching fallback key
+      const q = trimmed.toLowerCase();
+      const key = Object.keys(FALLBACK_RESPONSES).find((k) => q.includes(k)) ??
+        ((/help|what can|capabilities/.test(q)) ? "help" :
+         (/how does|how it works|explain/.test(q)) ? "how does this work" :
+         "help");
+      setActiveLabel(trimmed);
+      setActiveTool("parry-agent");
+      setResult(JSON.stringify({ tool: "parry-agent", answer: FALLBACK_RESPONSES[key] }, null, 2));
+      return;
+    }
+    await callPreset({ ...intent, label: trimmed });
   };
 
   return (
@@ -217,7 +241,7 @@ export function AgentChat() {
       </form>
       {noMatch && (
         <div style={{ fontSize: 11, color: "rgba(255,150,100,0.9)", marginBottom: 10, fontFamily: "var(--font-hud), monospace" }}>
-          ✗ Not recognized — try: "IL", "delta", "ticks", "status", or "premium"
+          ✗ Not recognized — type "help" to see what I can answer
         </div>
       )}
 

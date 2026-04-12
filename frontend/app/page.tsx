@@ -32,6 +32,10 @@ export interface AgentStatus {
   vaultAddress: string;
   agentWallet: string;
   onChainTxCount?: number;
+  startTimestamp?: string;
+  demoMode?: boolean;
+  chainId?: number;
+  signerLoaded?: boolean;
   logs: string[];
 }
 
@@ -521,6 +525,23 @@ export default function Home() {
               >
                 {connected ? "AGENT CONNECTED" : "DEMO MODE"}
               </span>
+              {status.startTimestamp && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "var(--text-faint)",
+                    fontFamily: "var(--font-hud), monospace",
+                    letterSpacing: "0.05em",
+                    marginLeft: 8,
+                  }}
+                >
+                  RUNNING SINCE{" "}
+                  {new Date(status.startTimestamp).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  }).toUpperCase()}
+                </span>
+              )}
             </div>
             <div
               style={{
