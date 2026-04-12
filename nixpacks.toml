@@ -1,8 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "curl", "bash"]
 
 [phases.install]
-cmds = ["cd agent && npm ci"]
+cmds = [
+  "curl -sSL https://raw.githubusercontent.com/okx/onchainos-skills/main/install.sh | sh",
+  "cd agent && npm ci"
+]
 
 [phases.build]
 cmds = ["cd agent && npm run build"]

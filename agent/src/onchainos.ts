@@ -24,6 +24,8 @@ export class OnchainOSClient {
       OKX_API_KEY: process.env.OKX_API_KEY || "",
       OKX_SECRET_KEY: process.env.OKX_SECRET_KEY || "",
       OKX_PASSPHRASE: process.env.OKX_PASSPHRASE || "",
+      // PATH: ensure ~/.local/bin (where onchainos CLI installs) is on the path
+      PATH: `${process.env.HOME || "/root"}/.local/bin:${process.env.PATH || "/usr/bin:/bin"}`,
     };
   }
 
