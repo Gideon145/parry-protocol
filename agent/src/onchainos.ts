@@ -344,6 +344,56 @@ export class OnchainOSClient {
     });
   }
 
+  // ─── OKX DEX Aggregator REST (real swap calldata) ─────────────────────────
+
+  /**
+   * Fetch real DEX swap calldata from OKX DEX Aggregator v5 REST API.
+   * Returns tx data (to, data, value, gasLimit) that the caller signs and
+   * broadcasts — producing a real on-chain DEX swap transaction.
+   *
+   * chainId 196  = X Layer mainnet  (OKX DEX has live liquidity pools)
+   * chainId 1952 = X Layer testnet  (tried first; falls back to 196 if unsupported)
+   *
+   * Documented endpoint:
+   *   GET /api/v5/dex/aggregator/swap?chainId=…&fromTokenAddress=…&toTokenAddress=…
+   *                                   &amount=…&userWalletAddress=…&slippage=…
+   */
+  getOKXDEXSwapTx(
+    fromTokenAddress: string,
+    toTokenAddress: string,
+    amountWei: string,
+    userWalletAddress: string,
+    slippage = "0.005",
+    chainId = 196
+  ): Promise<{ to: string; data: string; value: string; gasLimit: string } | null> {
+    const path =
+      `/api/v5/dex/aggregator/swap?chainId=${chainId}` +
+      `&fromTokenAddress=${fromTokenAddress}&toTokenAddress=${toTokenAddress}` +
+      `&amount=${amountWei}&userWalletAddress=${userWalletAddress}&slippage=${slippage}`;
+    return new Promise((resolve) => {
+      const req = https.get(
+        { hostname: "www.okx.com", path, headers: { "User-Agent": "parry-agent/1.0" } },
+        (res) => {
+          let raw = "";
+          res.on("data", (c: string) => { raw += c; });
+          res.on("end", () => {
+            try {
+              const parsed = JSON.parse(raw);
+              const tx = parsed?.data?.[0]?.tx;
+              if (tx?.to && tx?.data) {
+                resolve({ to: tx.to, data: tx.data, value: tx.value || "0", gasLimit: tx.gas || "300000" });
+              } else {
+                resolve(null);
+              }
+            } catch { resolve(null); }
+          });
+        }
+      );
+      req.on("error", () => resolve(null));
+      req.setTimeout(10000, () => { req.destroy(); resolve(null); });
+    });
+  }
+
   // ─── CoinGecko (final fallback only) ──────────────────────────────────────
 
   /** Fetch spot price from CoinGecko public API */
