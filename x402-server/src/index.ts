@@ -24,7 +24,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const PORT = parseInt(process.env.X402_PORT || "3002");
+const PORT = parseInt(process.env.PORT || process.env.X402_PORT || "3002", 10);
 const VAULT_ADDRESS = process.env.VAULT_ADDRESS || "";
 const AGENT_WALLET = process.env.AGENT_WALLET || "";
 
