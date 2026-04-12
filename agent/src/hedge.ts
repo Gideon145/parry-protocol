@@ -167,6 +167,7 @@ export class HedgeExecutor {
       const recordHash = await this.broadcastViaGateway(encodedRecord);
       if (recordHash) {
         await this.provider.waitForTransaction(recordHash);
+        if (!txHash) txHash = recordHash; // use recordHedge hash as the reported txHash when swap hash is unavailable
         logger.info(`[HedgeExecutor] ✓ recordHedge via Onchain OS gateway: ${recordHash}`);
       } else {
         // Fallback: direct ethers.js submission
@@ -177,6 +178,7 @@ export class HedgeExecutor {
           hedgeRatioBps
         );
         await recordTx.wait();
+        if (!txHash) txHash = recordTx.hash;
         logger.info(`[HedgeExecutor] Hedge recorded on-chain (direct): ${recordTx.hash}`);
       }
     } catch (e) {
