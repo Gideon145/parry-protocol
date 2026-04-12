@@ -210,25 +210,26 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 13px;
 }
 .data-row:last-child { border-bottom: none; }
-.data-label { color: var(--text-dim); letter-spacing: 0.05em; }
-.data-value { color: var(--text-primary); font-family: var(--font-hud), monospace; }
+.data-label { color: var(--text-dim); letter-spacing: 0.05em; font-size: 11px; }
+.data-value { color: var(--text-primary); font-family: var(--font-hud), monospace; font-size: 13px; }
 
 /* -- Terminal log ----------------------------------------------------------- */
 .terminal-log {
   background: #020208;
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 12px;
+  padding: 14px;
   font-family: var(--font-hud), monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: #00cc66;
   overflow-y: auto;
-  max-height: 200px;
+  max-height: 260px;
+  line-height: 1.8;
 }
 .terminal-log::-webkit-scrollbar { width: 3px; }
 .terminal-log::-webkit-scrollbar-thumb { background: #00cc6655; }
@@ -240,6 +241,10 @@ html, body {
 .log-compound { color: var(--purple); }
 
 /* -- Pulse animation ------------------------------------------------------- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 @keyframes pulse-ring {
   0% { transform: scale(1); opacity: 1; }
   100% { transform: scale(2); opacity: 0; }

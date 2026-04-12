@@ -38,12 +38,12 @@ export function TerminalLog({ logs }: Props) {
         background: "rgba(0,0,0,0.6)",
         border: "1px solid var(--border)",
         borderRadius: 3,
-        padding: "10px 12px",
-        height: 200,
+        padding: "12px 14px",
+        height: 260,
         overflowY: "auto",
         fontFamily: "var(--font-hud), 'Courier New', monospace",
-        fontSize: 10,
-        lineHeight: 1.8,
+        fontSize: 11,
+        lineHeight: 1.9,
       }}
     >
       {logs.length === 0 && (

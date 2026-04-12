@@ -7,17 +7,24 @@ interface Props {
   color?: string;
   unit?: string;
   trend?: "up" | "down";
+  tooltip?: string;
 }
 
-export function MetricCard({ label, value, subvalue, color = "var(--cyan)", unit, trend }: Props) {
+export function MetricCard({ label, value, subvalue, color = "var(--cyan)", unit, trend, tooltip }: Props) {
   return (
     <div
-      className="card-hud p-4"
-      style={{ display: "flex", flexDirection: "column", gap: 6 }}
+      className="card-hud p-5"
+      style={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        gap: 8,
+        cursor: tooltip ? "help" : "default",
+      }}
+      title={tooltip}
     >
       <div
         style={{
-          fontSize: 9,
+          fontSize: 11,
           color: "var(--text-dim)",
           letterSpacing: "0.15em",
           display: "flex",
@@ -27,25 +34,26 @@ export function MetricCard({ label, value, subvalue, color = "var(--cyan)", unit
       >
         <span>{label}</span>
         {unit && (
-          <span style={{ color: "var(--text-faint)", fontSize: 8 }}>{unit}</span>
+          <span style={{ color: "var(--text-faint)", fontSize: 9 }}>{unit}</span>
         )}
       </div>
       <div
         style={{
           display: "flex",
           alignItems: "baseline",
-          gap: 6,
+          gap: 8,
         }}
       >
         <span
           style={{
-            fontSize: 22,
+            fontSize: 28,
             fontWeight: 800,
             color,
             fontFamily: "var(--font-hud), monospace",
             letterSpacing: "-0.02em",
             lineHeight: 1,
             textShadow: `0 0 12px ${color}66`,
+            animation: "pulse 2s ease-in-out infinite",
           }}
         >
           {value}
@@ -53,7 +61,7 @@ export function MetricCard({ label, value, subvalue, color = "var(--cyan)", unit
         {trend && (
           <span
             style={{
-              fontSize: 12,
+              fontSize: 14,
               color: trend === "up" ? "var(--green)" : "var(--red)",
             }}
           >
@@ -64,7 +72,7 @@ export function MetricCard({ label, value, subvalue, color = "var(--cyan)", unit
       {subvalue && (
         <div
           style={{
-            fontSize: 9,
+            fontSize: 11,
             color: "var(--text-dim)",
             fontFamily: "var(--font-hud), monospace",
           }}

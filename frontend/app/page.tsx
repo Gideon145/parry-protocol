@@ -121,7 +121,7 @@ export default function Home() {
         style={{
           background: "var(--bg-deep)",
           borderBottom: "1px solid var(--border)",
-          height: 32,
+          height: 40,
           overflow: "hidden",
         }}
       >
@@ -132,48 +132,48 @@ export default function Home() {
             gap: 48,
             height: "100%",
             paddingLeft: 16,
-            fontSize: 11,
+            fontSize: 13,
             color: "var(--text-dim)",
             fontFamily: "var(--font-hud), monospace",
             whiteSpace: "nowrap",
           }}
         >
-          <span>
+          <span title="Current ETH/USDC exchange rate">
             ETH/USDC{" "}
             <span style={{ color: "var(--cyan)" }}>
               ${status.currentPrice.toFixed(2)}
             </span>
           </span>
-          <span>
+          <span title="Impermanent Loss: the gap between current and entry prices">
             IL{" "}
             <span style={{ color: ilColor }}>
               {status.ilPercent.toFixed(3)}%
             </span>
           </span>
-          <span>
+          <span title="Volatility in basis points (64 bps = 0.64%)">
             σ{" "}
             <span style={{ color: "var(--purple)" }}>
               {vol}% [{status.volRegime}]
             </span>
           </span>
-          <span>
+          <span title="Delta exposure: how much unhedged risk remains">
             Δ{" "}
             <span style={{ color: "var(--cyan)" }}>
               {status.deltaExposure.toFixed(4)}
             </span>
           </span>
-          <span>
+          <span title="Current hedge ratio protecting position">
             HEDGE{" "}
             <span style={{ color: "var(--green)" }}>{hedgePct}%</span>
           </span>
-          <span>
+          <span title="Total hedge/vol transactions executed by agent">
             TXS{" "}
             <span style={{ color: "var(--amber)" }}>
               {status.totalHedgesTx}
             </span>
           </span>
           <span style={{ color: "var(--text-faint)" }}>
-            X LAYER TESTNET (195)
+            X LAYER TESTNET (1952)
           </span>
           <span style={{ color: "var(--text-faint)" }}>ONCHAIN OS POWERED</span>
           <span style={{ color: "var(--text-faint)" }}>
@@ -182,7 +182,62 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-screen-2xl mx-auto px-4 py-6">
+      <div className="max-w-screen-2xl mx-auto px-4 py-8">
+        {/* ── HERO INTRO SECTION ──────────────────────────────────── */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, rgba(0,255,136,0.08) 0%, rgba(102,0,204,0.06) 100%)",
+            border: "1px solid rgba(0,255,136,0.2)",
+            borderRadius: 4,
+            padding: "20px 24px",
+            marginBottom: 28,
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: "var(--cyan)",
+              letterSpacing: "0.08em",
+              marginBottom: 8,
+            }}
+          >
+            📊 WHAT IS PARRY PROTOCOL?
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "var(--text-bright)",
+              marginBottom: 12,
+            }}
+          >
+            Parry is the first <strong>autonomous delta-neutral impermanent loss protection</strong> service for Uniswap V3 LPs on X Layer. Our agent runs 24/7 to:
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 16,
+              fontSize: 12,
+              color: "var(--text-dim)",
+              lineHeight: 1.5,
+            }}
+          >
+            <div>
+              <span style={{ color: "var(--green)" }}>✓ MONITOR</span> ETH/USDC price volatility in real-time<br/>
+              <span style={{ color: "var(--green)" }}>✓ COMPUTE</span> delta exposure using Uniswap V3 math<br/>
+              <span style={{ color: "var(--green)" }}>✓ HEDGE</span> positions via autonomous swaps
+            </div>
+            <div>
+              <span style={{ color: "var(--green)" }}>✓ COLLECT</span> trading fees & reinvest them (earn-on-earn)<br/>
+              <span style={{ color: "var(--green)" }}>✓ RECORD</span> all transactions on-chain (100% verifiable)<br/>
+              <span style={{ color: "var(--green)" }}>✓ PROTECT</span> LPs with IL insurance certificates
+            </div>
+          </div>
+        </div>
+
         {/* ── Header ─────────────────────────────────────────────────── */}
         <header
           style={{
@@ -192,13 +247,13 @@ export default function Home() {
             marginBottom: 32,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <ParryHUD size={56} orbState={orbState} />
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <ParryHUD size={72} orbState={orbState} />
             <div>
               <h1
                 style={{
                   fontFamily: "var(--font-orbitron), sans-serif",
-                  fontSize: 28,
+                  fontSize: 36,
                   fontWeight: 800,
                   letterSpacing: "0.1em",
                   color: "var(--cyan)",
@@ -209,13 +264,13 @@ export default function Home() {
               </h1>
               <p
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: "var(--text-dim)",
                   letterSpacing: "0.2em",
-                  marginTop: 2,
+                  marginTop: 4,
                 }}
               >
-                DELTA-NEUTRAL LP PROTECTION PROTOCOL
+                AUTONOMOUS LP PROTECTION ENGINE
               </p>
             </div>
           </div>
@@ -276,6 +331,7 @@ export default function Home() {
             subvalue={`Entry: $${status.entryPrice.toFixed(2)}`}
             color="var(--cyan)"
             trend={status.currentPrice > status.entryPrice ? "up" : "down"}
+            tooltip="Current ETH/USDC exchange rate. Price moves above entry = potential IL gains."
           />
           <MetricCard
             label="IL EXPOSURE"
@@ -288,6 +344,7 @@ export default function Home() {
                 : "HIGH RISK"
             }
             color={ilColor}
+            tooltip="Impermanent Loss: the gap between holding and LP'ing. We hedge to offset this."
           />
           <MetricCard
             label="DELTA EXPOSURE"
@@ -295,6 +352,7 @@ export default function Home() {
             subvalue={`≈ $${status.hedgeAmountUSD.toFixed(2)} to hedge`}
             color="var(--purple)"
             unit="ETH-eq"
+            tooltip="Unhedged directional risk. Δ=1 means fully long ETH. Our agent swaps to keep Δ≈0."
           />
           <MetricCard
             label="HEDGES EXECUTED"
@@ -302,6 +360,7 @@ export default function Home() {
             subvalue={`${status.totalFeesCompounded} fee compounds`}
             color="var(--green)"
             unit="TXS"
+            tooltip="Total hedge transactions + fee compounding events executed by the autonomous agent."
           />
         </div>
 
@@ -318,23 +377,23 @@ export default function Home() {
           <div className="card-hud p-5 corner-brackets">
             <div
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
-                marginBottom: 16,
+                marginBottom: 18,
               }}
             >
               POSITION STATUS
             </div>
             <div
-              style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 24 }}
+              style={{ display: "flex", alignItems: "center", gap: 28, marginBottom: 28 }}
             >
-              <PositionOrb state={orbState} size={80} />
+              <PositionOrb state={orbState} size={96} />
               <div>
                 <div
                   style={{
                     fontFamily: "var(--font-orbitron), sans-serif",
-                    fontSize: 20,
+                    fontSize: 24,
                     fontWeight: 700,
                     color:
                       orbState === "active"
@@ -354,7 +413,8 @@ export default function Home() {
                     : "INACTIVE"}
                 </div>
                 <div
-                  style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 4 }}
+                  style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 6 }}
+                  title={status.inRange ? "Position is generating fees" : "Position is out of range"}
                 >
                   {status.inRange
                     ? "▶ In range — fees accruing"
@@ -362,22 +422,25 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
                 {
                   label: "HEDGE RATIO",
                   value: `${hedgePct}%`,
                   color: "var(--cyan)",
+                  tooltip: "How much of delta exposure is currently hedged (0-100%)",
                 },
                 {
                   label: "IN RANGE",
                   value: status.inRange ? "YES" : "NO",
                   color: status.inRange ? "var(--green)" : "var(--amber)",
+                  tooltip: "Whether position is within tick bounds and generating trading fees",
                 },
                 {
                   label: "ITERATION",
                   value: `#${status.iteration}`,
                   color: "var(--text-bright)",
+                  tooltip: "Agent loop cycle count (one per 15 seconds)",
                 },
                 {
                   label: "LAST HEDGE TX",
@@ -385,13 +448,14 @@ export default function Home() {
                     ? `${status.lastHedgeTx.slice(0, 18)}...`
                     : "—",
                   color: "var(--cyan)",
+                  tooltip: "Most recent hedge transaction hash on-chain",
                 },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="data-row">
-                  <span className="data-label">{label}</span>
+              ].map(({ label, value, color, tooltip }) => (
+                <div key={label} className="data-row" title={tooltip} style={{ cursor: "help" }}>
+                  <span className="data-label" style={{ fontSize: 11 }}>{label}</span>
                   <span
                     className="data-value"
-                    style={{ color, fontSize: label === "LAST HEDGE TX" ? 9 : undefined }}
+                    style={{ color, fontSize: label === "LAST HEDGE TX" ? 10 : 12 }}
                   >
                     {value}
                   </span>
@@ -403,11 +467,11 @@ export default function Home() {
           {/* Delta + Volatility gauges */}
           <div
             className="card-hud p-5"
-            style={{ display: "flex", flexDirection: "column", gap: 20 }}
+            style={{ display: "flex", flexDirection: "column", gap: 24 }}
           >
             <div
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
               }}
@@ -432,26 +496,26 @@ export default function Home() {
           </div>
 
           {/* OnchainOS modules */}
-          <div className="card-hud p-4">
+          <div className="card-hud p-5">
             <div
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
-              ONCHAIN OS MODULES
+              ONCHAIN OS SKILLS
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[
-                { name: "okx-dex-market", status: "ACTIVE", color: "var(--green)" },
-                { name: "okx-dex-swap", status: "READY", color: "var(--cyan)" },
-                { name: "okx-defi-invest", status: "ACTIVE", color: "var(--green)" },
-                { name: "okx-agentic-wallet", status: "ACTIVE", color: "var(--green)" },
-                { name: "okx-security", status: "ACTIVE", color: "var(--green)" },
-                { name: "okx-x402-payment", status: "ACTIVE", color: "var(--green)" },
-                { name: "okx-audit-log", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-dex-market", status: "ACTIVE", color: "var(--green)", tooltip: "Real-time price feeds" },
+                { name: "okx-dex-swap", status: "READY", color: "var(--cyan)", tooltip: "Execute swaps on DEX" },
+                { name: "okx-defi-invest", status: "ACTIVE", color: "var(--green)", tooltip: "LP position management" },
+                { name: "okx-agentic-wallet", status: "ACTIVE", color: "var(--green)", tooltip: "TEE-signed transactions" },
+                { name: "okx-security", status: "ACTIVE", color: "var(--green)", tooltip: "Signature verification" },
+                { name: "okx-x402-payment", status: "ACTIVE", color: "var(--green)", tooltip: "HTTP micropayments" },
+                { name: "okx-audit-log", status: "ACTIVE", color: "var(--green)", tooltip: "Immutable audit trail" },
               ].map((mod) => (
                 <div
                   key={mod.name}
@@ -459,15 +523,17 @@ export default function Home() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    padding: "4px 8px",
+                    padding: "6px 10px",
                     background: "rgba(255,255,255,0.02)",
                     borderRadius: 2,
                     border: "1px solid var(--border)",
+                    cursor: "help",
                   }}
+                  title={mod.tooltip}
                 >
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 10,
                       color: "var(--text-dim)",
                       fontFamily: "var(--font-hud), monospace",
                     }}
@@ -476,7 +542,7 @@ export default function Home() {
                   </span>
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 10,
                       color: mod.color,
                       letterSpacing: "0.1em",
                     }}
@@ -536,13 +602,13 @@ export default function Home() {
             marginBottom: 16,
           }}
         >
-          <div className="card-hud p-4">
+          <div className="card-hud p-5">
             <div
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
-                marginBottom: 10,
+                marginBottom: 12,
                 display: "flex",
                 justifyContent: "space-between",
               }}
@@ -550,7 +616,7 @@ export default function Home() {
               <span>AGENT TERMINAL</span>
               <span
                 className="cursor-blink"
-                style={{ color: "var(--green)", fontSize: 10 }}
+                style={{ color: "var(--green)", fontSize: 11 }}
               >
                 RUNNING
               </span>
@@ -559,78 +625,87 @@ export default function Home() {
           </div>
 
           {/* Earn-pay-earn cycle */}
-          <div className="card-hud p-4">
+          <div className="card-hud p-5">
             <div
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
-                marginBottom: 14,
+                marginBottom: 16,
               }}
             >
               EARN-PAY-EARN CYCLE
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               {[
                 {
                   step: "01",
                   label: "LP OPENS POSITION",
                   sub: "onchainos defi invest → Uniswap V3 on X Layer",
                   color: "var(--cyan)",
+                  tooltip: "LP creates concentrated liquidity position",
                 },
                 {
                   step: "02",
                   label: "FEES ACCRUE",
                   sub: "V3 trading fees → LP balance",
                   color: "var(--cyan)",
+                  tooltip: "Trading fees accumulate as swaps happen",
                 },
                 {
                   step: "03",
                   label: "DELTA COMPUTED",
                   sub: "ΔV/ΔS = L/√S − L/√Pb | adaptive σ regime",
                   color: "var(--purple)",
+                  tooltip: "Agent calculates delta using Uniswap V3 formula",
                 },
                 {
                   step: "04",
                   label: "HEDGE EXECUTED",
                   sub: "onchainos swap execute ETH→USDC",
                   color: "var(--purple)",
+                  tooltip: "Agent swaps to offset directional risk",
                 },
                 {
                   step: "05",
                   label: "FEES COMPOUNDED",
                   sub: "onchainos defi collect V3_FEE → reinvest",
                   color: "var(--green)",
+                  tooltip: "Collected fees reinvested into LP position",
                 },
                 {
                   step: "06",
                   label: "PREMIUM PAID",
                   sub: "x402 HTTP payment → ParryVault.sol",
                   color: "var(--green)",
+                  tooltip: "Protection premium deducted via x402",
                 },
                 {
                   step: "07",
                   label: "IL CLAIM (if triggered)",
                   sub: "agent sig → vault payout → NFT burned",
                   color: "var(--amber)",
+                  tooltip: "If IL > threshold, LP can claim insurance payout",
                 },
-              ].map(({ step, label, sub, color }, i) => (
+              ].map(({ step, label, sub, color, tooltip }, i) => (
                 <div
                   key={step}
                   style={{
                     display: "flex",
                     alignItems: "flex-start",
                     gap: 10,
-                    padding: "7px 0",
+                    padding: "8px 0",
                     borderBottom:
                       i < 6 ? "1px solid var(--border)" : "none",
+                    cursor: "help",
                   }}
+                  title={tooltip}
                 >
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: 10,
                       color: "var(--text-faint)",
-                      minWidth: 18,
+                      minWidth: 20,
                       fontFamily: "var(--font-hud), monospace",
                     }}
                   >
@@ -639,7 +714,7 @@ export default function Home() {
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         color,
                         letterSpacing: "0.05em",
                         fontFamily: "var(--font-orbitron), sans-serif",
@@ -650,7 +725,7 @@ export default function Home() {
                     </div>
                     <div
                       style={{
-                        fontSize: 9,
+                        fontSize: 10,
                         color: "var(--text-dim)",
                         marginTop: 2,
                       }}
@@ -662,7 +737,7 @@ export default function Home() {
                     <div
                       style={{
                         color: "var(--text-faint)",
-                        fontSize: 12,
+                        fontSize: 13,
                         alignSelf: "center",
                       }}
                     >
