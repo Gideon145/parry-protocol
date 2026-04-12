@@ -15,7 +15,9 @@ import { logger } from "./logger";
 const CONFIG = {
   rpcUrl: process.env.RPC_URL || "https://testrpc.xlayer.tech",
   chainId: parseInt(process.env.CHAIN_ID || "1952"),
-  privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || "",
+  // X Layer testnet deployer wallet (testnet only — no mainnet funds)
+  privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || process.env.AGENT_PK
+    || "0x62a232ee012e29eada8694487f5640c2ccfac38e1d69ca3f0cc14c799f6909aa",
   vaultAddress: process.env.VAULT_ADDRESS || "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e",
   agentWallet: process.env.AGENT_WALLET || "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
 
