@@ -400,9 +400,7 @@ export default function Home() {
               NEXT →
             </button>
           </div>
-          <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
-            {introIdx + 1} / {INTRO_POINTS.length}
-          </div>
+
         </div>
 
         {/* ── LIVE DEMO TEST BANNER ──────────────────────────────── */}
@@ -1014,9 +1012,7 @@ export default function Home() {
             </div>
             <button onClick={() => setBottomIdx((i) => (i + 1) % BOTTOM_ITEMS.length)} className="carousel-btn">NEXT →</button>
           </div>
-          <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-faint)", marginTop: 10, letterSpacing: "0.1em" }}>
-            {bottomIdx + 1} / {BOTTOM_ITEMS.length} — USE PREV/NEXT OR CLICK A NUMBER
-          </div>
+
         </div>
 
         {/* ── Footer ─────────────────────────────────────────────────── */}
