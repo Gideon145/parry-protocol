@@ -604,7 +604,6 @@ export default function Home() {
             >
               <div
                 style={{
-                  fontSize: 9,
                   fontSize: 12,
                   color: "var(--text-dim)",
                   marginBottom: 6,
