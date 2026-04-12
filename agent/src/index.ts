@@ -15,7 +15,7 @@ import { logger } from "./logger";
 const CONFIG = {
   rpcUrl: process.env.RPC_URL || "https://testrpc.xlayer.tech",
   chainId: parseInt(process.env.CHAIN_ID || "1952"),
-  privateKey: process.env.PRIVATE_KEY || "",
+  privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || "",
   vaultAddress: process.env.VAULT_ADDRESS || "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e",
   agentWallet: process.env.AGENT_WALLET || "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
 
@@ -79,6 +79,7 @@ interface AgentStatus {
   agentWallet: string;
   demoMode: boolean;
   chainId: number;
+  signerLoaded: boolean;
   logs: string[];
 }
 
@@ -105,6 +106,7 @@ const state: AgentStatus = {
   agentWallet: CONFIG.agentWallet,
   demoMode: CONFIG.demoMode,
   chainId: CONFIG.chainId,
+  signerLoaded: CONFIG.privateKey.length > 10,
   logs: [],
 };
 
