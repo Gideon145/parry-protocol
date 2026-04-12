@@ -1,0 +1,22 @@
+{
+  "name": "PARRY-mcp-server",
+  "version": "1.0.0",
+  "description": "Parry Protocol MCP Server — expose agent tools to Claude/ChatGPT",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.3",
+    "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

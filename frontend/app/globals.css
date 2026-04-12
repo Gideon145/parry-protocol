@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+/* -- Parry Protocol Sci-Fi Theme ------------------------------------------- */
+
+:root {
+  --bg-void:        #030309;
+  --bg-deep:        #050510;
+  --bg-card:        #08091a;
+  --bg-card-hover:  #0d0e24;
+  --border:         #1a1b3a;
+  --border-glow:    #1e2050;
+
+  --cyan:           #00d4ff;
+  --cyan-dim:       #0090b0;
+  --cyan-glow:      rgba(0, 212, 255, 0.15);
+  --purple:         #7c3aed;
+  --purple-dim:     #4c1d95;
+  --purple-glow:    rgba(124, 58, 237, 0.15);
+  --green:          #00ff88;
+  --green-dim:      #00aa5a;
+  --green-glow:     rgba(0, 255, 136, 0.15);
+  --amber:          #ff9500;
+  --amber-glow:     rgba(255, 149, 0, 0.15);
+  --red:            #ff3366;
+  --red-glow:       rgba(255, 51, 102, 0.15);
+  --text-primary:   #c8d6e5;
+  --text-dim:       #6a7a9a;
+  --text-faint:     #2a3050;
+
+  /* --font-orbitron and --font-hud injected by Next.js font system */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-hud), monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* -- Scrollbar -------------------------------------------------------------- */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan-dim); }
+
+/* -- HUD Grid Background ---------------------------------------------------- */
+.hud-grid {
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+}
+
+/* -- Scan Line effect ------------------------------------------------------- */
+.scanlines::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* -- Glow text -------------------------------------------------------------- */
+.text-glow-cyan  { text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan-dim); }
+.text-glow-green { text-shadow: 0 0 20px var(--green), 0 0 40px var(--green-dim); }
+.text-glow-amber { text-shadow: 0 0 20px var(--amber); }
+.text-glow-red   { text-shadow: 0 0 20px var(--red); }
+.text-glow-purple { text-shadow: 0 0 20px var(--purple); }
+
+/* -- Cards ------------------------------------------------------------------ */
+.card-hud {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.card-hud:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.05);
+}
+.card-hud::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+  opacity: 0.5;
+}
+
+.card-hud-active {
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 30px var(--cyan-glow), inset 0 0 30px rgba(0, 212, 255, 0.03);
+}
+.card-hud-warn {
+  border-color: var(--amber);
+  box-shadow: 0 0 30px var(--amber-glow), inset 0 0 30px rgba(255, 149, 0, 0.03);
+}
+.card-hud-danger {
+  border-color: var(--red);
+  box-shadow: 0 0 30px var(--red-glow), inset 0 0 30px rgba(255, 51, 102, 0.03);
+}
+
+/* -- Corner brackets ------------------------------------------------------- */
+.corner-brackets {
+  position: relative;
+}
+.corner-brackets::before,
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+}
+.corner-brackets::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--cyan);
+  border-left: 2px solid var(--cyan);
+}
+.corner-brackets::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--cyan);
+  border-right: 2px solid var(--cyan);
+}
+
+/* -- Status orb ------------------------------------------------------------- */
+.orb {
+  border-radius: 50%;
+  position: relative;
+}
+.orb-active {
+  background: radial-gradient(circle at 35% 35%, #00ffbb, var(--green));
+  box-shadow: 0 0 20px var(--green), 0 0 40px rgba(0,255,136,0.4);
+  animation: orb-pulse-green 2s ease-in-out infinite;
+}
+.orb-warn {
+  background: radial-gradient(circle at 35% 35%, #ffcc44, var(--amber));
+  box-shadow: 0 0 20px var(--amber), 0 0 40px rgba(255,149,0,0.4);
+  animation: orb-pulse-amber 1.5s ease-in-out infinite;
+}
+.orb-danger {
+  background: radial-gradient(circle at 35% 35%, #ff6688, var(--red));
+  box-shadow: 0 0 20px var(--red), 0 0 40px rgba(255,51,102,0.4);
+  animation: orb-pulse-red 0.8s ease-in-out infinite;
+}
+.orb-idle {
+  background: radial-gradient(circle at 35% 35%, #3a3a6a, #1a1a4a);
+  box-shadow: 0 0 10px rgba(100,100,200,0.2);
+}
+
+@keyframes orb-pulse-green {
+  0%, 100% { box-shadow: 0 0 20px var(--green), 0 0 40px rgba(0,255,136,0.4); }
+  50% { box-shadow: 0 0 30px var(--green), 0 0 60px rgba(0,255,136,0.6), 0 0 80px rgba(0,255,136,0.2); }
+}
+@keyframes orb-pulse-amber {
+  0%, 100% { box-shadow: 0 0 20px var(--amber), 0 0 40px rgba(255,149,0,0.4); }
+  50% { box-shadow: 0 0 30px var(--amber), 0 0 60px rgba(255,149,0,0.7); }
+}
+@keyframes orb-pulse-red {
+  0%, 100% { box-shadow: 0 0 20px var(--red), 0 0 40px rgba(255,51,102,0.5); }
+  50% { box-shadow: 0 0 40px var(--red), 0 0 80px rgba(255,51,102,0.8); }
+}
+
+/* -- Gauge bar -------------------------------------------------------------- */
+.gauge-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.gauge-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -3px;
+  width: 2px;
+  height: 10px;
+  background: white;
+  border-radius: 1px;
+  box-shadow: 0 0 6px currentColor;
+}
+.gauge-fill-cyan  { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); box-shadow: 0 0 8px var(--cyan); }
+.gauge-fill-green { background: linear-gradient(90deg, var(--green-dim), var(--green)); box-shadow: 0 0 8px var(--green); }
+.gauge-fill-amber { background: linear-gradient(90deg, #cc7800, var(--amber)); box-shadow: 0 0 8px var(--amber); }
+.gauge-fill-red   { background: linear-gradient(90deg, #cc1133, var(--red)); box-shadow: 0 0 8px var(--red); }
+
+/* -- Data table ------------------------------------------------------------- */
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.data-row:last-child { border-bottom: none; }
+.data-label { color: var(--text-dim); letter-spacing: 0.05em; }
+.data-value { color: var(--text-primary); font-family: var(--font-hud), monospace; }
+
+/* -- Terminal log ----------------------------------------------------------- */
+.terminal-log {
+  background: #020208;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: var(--font-hud), monospace;
+  font-size: 11px;
+  color: #00cc66;
+  overflow-y: auto;
+  max-height: 200px;
+}
+.terminal-log::-webkit-scrollbar { width: 3px; }
+.terminal-log::-webkit-scrollbar-thumb { background: #00cc6655; }
+
+.log-info    { color: #00cc66; }
+.log-warn    { color: var(--amber); }
+.log-error   { color: var(--red); }
+.log-hedge   { color: var(--cyan); }
+.log-compound { color: var(--purple); }
+
+/* -- Pulse animation ------------------------------------------------------- */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* -- Blink cursor ----------------------------------------------------------- */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  color: var(--cyan);
+  margin-left: 2px;
+}
+
+/* -- Number transition ------------------------------------------------------ */
+.num-transition {
+  transition: color 0.3s;
+}
+
+/* -- PARRY logo hex ------------------------------------------------------- */
+.PARRY-hex {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* -- Ticker tape ----------------------------------------------------------- */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-inner {
+  animation: ticker 20s linear infinite;
+  white-space: nowrap;
+}
+
+/* -- Connecting dots animation --------------------------------------------- */
+@keyframes dot-flash {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+.dot-1 { animation: dot-flash 1.4s ease-in-out infinite; }
+.dot-2 { animation: dot-flash 1.4s ease-in-out 0.2s infinite; }
+.dot-3 { animation: dot-flash 1.4s ease-in-out 0.4s infinite; }
