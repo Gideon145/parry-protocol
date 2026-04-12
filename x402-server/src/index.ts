@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { ethers } from "ethers";
+import * as http from "http";
 
 /**
  * PARRY x402 Payment Server
@@ -251,15 +252,27 @@ function x402Middleware(req: Request, res: Response, next: NextFunction): void {
 // Start
 // ─────────────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`
+const candidatePorts = Array.from(new Set([PORT, 3002, 8080]));
+
+for (const p of candidatePorts) {
+  try {
+    const server = http.createServer(app);
+    server.listen(p, () => {
+      console.log(`
 ╔═══════════════════════════════════════╗
 ║   PARRY x402 Payment Server          ║
-║   Port: ${PORT}                          ║
+║   Port: ${p}                          ║
 ║   Pay-per-block IL Protection         ║
 ║   Network: X Layer (Chain ${process.env.CHAIN_ID || "1952"})      ║
 ╚═══════════════════════════════════════╝
-  `);
-  console.log(`[x402] Payment endpoint: POST http://localhost:${PORT}/protect/activate`);
-  console.log(`[x402] Payment info: GET http://localhost:${PORT}/payment-info`);
-});
+      `);
+      console.log(`[x402] Payment endpoint: POST http://localhost:${p}/protect/activate`);
+      console.log(`[x402] Payment info: GET http://localhost:${p}/payment-info`);
+    });
+    server.on("error", () => {
+      // Ignore bind collisions and continue trying other ports.
+    });
+  } catch {
+    // Continue trying candidate ports.
+  }
+}
