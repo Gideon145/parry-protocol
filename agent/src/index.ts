@@ -138,13 +138,16 @@ function startStatusServer(): void {
       return;
     }
 
-    if (req.url === "/status") {
+    // Normalize URL: strip query strings and collapse double slashes
+    const pathname = (req.url || "/").split("?")[0].replace(/\/\/+/g, "/");
+
+    if (pathname === "/status") {
       res.writeHead(200);
       res.end(JSON.stringify(state));
       return;
     }
 
-    if (req.url === "/health") {
+    if (pathname === "/health") {
       res.writeHead(200);
       res.end(JSON.stringify({ ok: true }));
       return;

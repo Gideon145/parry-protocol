@@ -33,11 +33,20 @@ export interface AgentStatus {
   logs: string[];
 }
 
-const AGENT_URL = process.env.NEXT_PUBLIC_AGENT_URL || "http://localhost:3001";
+const AGENT_URL = (process.env.NEXT_PUBLIC_AGENT_URL || "http://localhost:3001").replace(/\/+$/, "");
 const FALLBACK_AGENT_URL = "https://parry-protocol-production.up.railway.app";
 const FALLBACK_WALLET = "0x94A4365E6B7E79791258A3Fa071824BC2b75a394";
 const FALLBACK_VAULT = "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e";
 const OKLINK_BASE = "https://oklink.com/x-layer-testnet";
+
+const INTRO_POINTS = [
+  { keyword: "MONITOR", text: "ETH/USDC price volatility in real-time using OnchainOS market data feeds", color: "var(--cyan)" },
+  { keyword: "COMPUTE", text: "Delta exposure using exact Uniswap V3 math: ΔV/ΔS = L/√S − L/√Pb", color: "var(--purple)" },
+  { keyword: "HEDGE", text: "LP positions autonomously via ETH→USDC swaps executed on OKX DEX", color: "var(--green)" },
+  { keyword: "COLLECT", text: "Trading fees continuously and reinvest them back into the LP (earn-on-earn)", color: "var(--green)" },
+  { keyword: "RECORD", text: "Every transaction permanently on X Layer Testnet — 100% verifiable on-chain", color: "var(--amber)" },
+  { keyword: "PROTECT", text: "LPs with IL insurance certificates issued by the ParryVault.sol smart contract", color: "var(--cyan)" },
+];
 
 const MOCK_STATUS: AgentStatus = {
   running: true,
@@ -75,6 +84,8 @@ export default function Home() {
   const [status, setStatus] = useState<AgentStatus>(MOCK_STATUS);
   const [connected, setConnected] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>("--");
+  const [introIdx, setIntroIdx] = useState(0);
+  const [bottomIdx, setBottomIdx] = useState(0);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -130,6 +141,18 @@ export default function Home() {
     return () => clearInterval(demoInterval);
   }, [connected]);
 
+  // Intro carousel — cycle every 5s
+  useEffect(() => {
+    const t = setInterval(() => setIntroIdx((i) => (i + 1) % INTRO_POINTS.length), 5000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Bottom carousel — cycle every 4s
+  useEffect(() => {
+    const t = setInterval(() => setBottomIdx((i) => (i + 1) % 6), 4000);
+    return () => clearInterval(t);
+  }, []);
+
   const ilColor =
     status.ilPercent < 2
       ? "var(--green)"
@@ -154,6 +177,15 @@ export default function Home() {
   const vaultAddress = validAddress(status.vaultAddress) ? status.vaultAddress : FALLBACK_VAULT;
   const txHash = validTxHash(status.lastHedgeTx) ? status.lastHedgeTx : "";
   const statusApiUrl = AGENT_URL.startsWith("http") ? AGENT_URL : FALLBACK_AGENT_URL;
+
+  const BOTTOM_ITEMS = [
+    { label: "ETH PRICE FEED", desc: "Live price from OnchainOS market skill → OKX DEX data", value: `$${status.currentPrice.toFixed(2)}` },
+    { label: "IL EXPOSURE", desc: "Impermanent Loss computed using Uniswap V3 exact math every 2s", value: `${status.ilPercent.toFixed(3)}%` },
+    { label: "DELTA HEDGING", desc: "Autonomous hedge via OKX DEX swap — keeps LP delta near zero", value: `${hedgePct}% COVERED` },
+    { label: "VOLATILITY REGIME", desc: "Adaptive hedge sizing based on realized market volatility σ", value: `${vol}% σ [${status.volRegime}]` },
+    { label: "HEDGES EXECUTED", desc: "Total autonomous hedge transactions confirmed on X Layer Testnet", value: `${status.totalHedgesTx} ON-CHAIN TXs` },
+    { label: "FEES COMPOUNDED", desc: "V3 trading fees collected and reinvested — earn on earn cycle", value: `${status.totalFeesCompounded} REINVESTMENTS` },
+  ];
 
   return (
     <main
@@ -229,57 +261,158 @@ export default function Home() {
       <div className="max-w-screen-2xl mx-auto px-4 py-8">
         {/* ── HERO INTRO SECTION ──────────────────────────────────── */}
         <div
-          className="animate-in"
+          className="animate-in intro-hover"
           style={{
             background: "linear-gradient(135deg, rgba(0,255,136,0.08) 0%, rgba(102,0,204,0.06) 100%)",
             border: "1px solid rgba(0,255,136,0.2)",
             borderRadius: 4,
-            padding: "24px 28px",
-            marginBottom: 28,
+            padding: "28px 32px",
+            marginBottom: 20,
             backdropFilter: "blur(8px)",
           }}
         >
           <div
             style={{
-              fontSize: 34,
+              fontSize: 36,
               fontWeight: 600,
               color: "var(--cyan)",
               letterSpacing: "0.08em",
-              marginBottom: 8,
+              marginBottom: 10,
+              fontFamily: "var(--font-orbitron), sans-serif",
             }}
+            className="text-glow-cyan"
           >
             WHAT IS PARRY PROTOCOL?
           </div>
           <div
             style={{
-              fontSize: 21,
+              fontSize: 19,
               lineHeight: 1.6,
-              color: "var(--text-bright)",
-              marginBottom: 12,
+              color: "var(--text-primary)",
+              marginBottom: 24,
             }}
           >
-            Parry is the first <strong>autonomous delta-neutral impermanent loss protection</strong> service for Uniswap V3 LPs on X Layer. Our agent runs 24/7 to:
+            The first <strong>autonomous delta-neutral impermanent loss protection</strong> agent for Uniswap V3 LPs on X Layer — running 24/7, fully on-chain.
           </div>
+
+          {/* Carousel point */}
+          <div style={{ minHeight: 90 }}>
+            <div
+              key={introIdx}
+              className="animate-in"
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 20,
+                padding: "18px 22px",
+                background: "rgba(0,0,0,0.35)",
+                border: `1px solid ${INTRO_POINTS[introIdx].color}44`,
+                borderRadius: 4,
+                borderLeft: `3px solid ${INTRO_POINTS[introIdx].color}`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 26,
+                  fontWeight: 800,
+                  fontFamily: "var(--font-orbitron), sans-serif",
+                  color: INTRO_POINTS[introIdx].color,
+                  letterSpacing: "0.12em",
+                  minWidth: 140,
+                  lineHeight: 1.3,
+                }}
+              >
+                {INTRO_POINTS[introIdx].keyword}
+              </div>
+              <div
+                style={{
+                  fontSize: 20,
+                  color: "var(--text-primary)",
+                  lineHeight: 1.55,
+                  paddingTop: 2,
+                }}
+              >
+                {INTRO_POINTS[introIdx].text}
+              </div>
+            </div>
+          </div>
+
+          {/* Progress dots */}
+          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            {INTRO_POINTS.map((_, i) => (
+              <div
+                key={i}
+                onClick={() => setIntroIdx(i)}
+                style={{
+                  width: 28,
+                  height: 4,
+                  borderRadius: 2,
+                  background: i === introIdx ? "var(--cyan)" : "var(--border-glow)",
+                  transition: "background 0.4s",
+                  cursor: "pointer",
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
+            {introIdx + 1} / {INTRO_POINTS.length} — AUTO-ADVANCES EVERY 5s
+          </div>
+        </div>
+
+        {/* ── LIVE DEMO TEST BANNER ──────────────────────────────── */}
+        <div
+          className="animate-in"
+          style={{ textAlign: "center", marginBottom: 28 }}
+        >
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-              fontSize: 18,
-              color: "var(--text-dim)",
-              lineHeight: 1.5,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 18,
+              padding: "14px 48px",
+              background: "rgba(0,212,255,0.07)",
+              border: "1px solid var(--cyan)",
+              borderRadius: 4,
+              boxShadow: "0 0 40px rgba(0,212,255,0.12)",
             }}
           >
-            <div>
-              <span style={{ color: "var(--green)" }}>MONITOR</span> ETH/USDC price volatility in real-time<br/>
-              <span style={{ color: "var(--green)" }}>COMPUTE</span> delta exposure using Uniswap V3 math<br/>
-              <span style={{ color: "var(--green)" }}>HEDGE</span> positions via autonomous swaps
-            </div>
-            <div>
-              <span style={{ color: "var(--green)" }}>COLLECT</span> trading fees & reinvest them (earn-on-earn)<br/>
-              <span style={{ color: "var(--green)" }}>RECORD</span> all transactions on-chain (100% verifiable)<br/>
-              <span style={{ color: "var(--green)" }}>PROTECT</span> LPs with IL insurance certificates
-            </div>
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                background: connected ? "var(--green)" : "var(--amber)",
+                boxShadow: `0 0 12px ${connected ? "var(--green)" : "var(--amber)"}`,
+                animation: "orb-pulse-green 2s ease-in-out infinite",
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontFamily: "var(--font-orbitron), sans-serif",
+                fontSize: 32,
+                fontWeight: 800,
+                color: "var(--cyan)",
+                letterSpacing: "0.18em",
+              }}
+              className="text-glow-cyan"
+            >
+              LIVE DEMO TEST
+            </span>
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                background: connected ? "var(--green)" : "var(--amber)",
+                boxShadow: `0 0 12px ${connected ? "var(--green)" : "var(--amber)"}`,
+                animation: "orb-pulse-green 2s ease-in-out infinite",
+                flexShrink: 0,
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-dim)", marginTop: 10, letterSpacing: "0.12em" }}>
+            {connected ? "LIVE AGENT FEED CONNECTED" : "SIMULATED DEMO FEED — AGENT LOADING"} · X LAYER TESTNET · CHAIN ID 1952 · ONCHAIN OS POWERED
           </div>
         </div>
 
@@ -335,13 +468,13 @@ export default function Home() {
               />
               <span
                 style={{
-                  fontSize: 14,
-                  color: connected ? "var(--green)" : "var(--red)",
+                  fontSize: 12,
+                  color: connected ? "var(--green)" : "var(--text-dim)",
                   fontFamily: "var(--font-hud), monospace",
                   letterSpacing: "0.1em",
                 }}
               >
-                LIVE DEMO TEST
+                {connected ? "AGENT CONNECTED" : "DEMO MODE"}
               </span>
             </div>
             <div
@@ -549,23 +682,24 @@ export default function Home() {
           <div className="card-hud hover-card p-5">
             <div
               style={{
-                fontSize: 12,
-                color: "var(--text-dim)",
+                fontSize: 13,
+                color: "var(--cyan)",
                 letterSpacing: "0.15em",
                 marginBottom: 14,
+                fontWeight: 700,
               }}
             >
               ONCHAIN OS SKILLS
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {[
-                { name: "okx-dex-market", status: "ACTIVE", color: "var(--green)", tooltip: "Real-time price feeds" },
-                { name: "okx-dex-swap", status: "READY", color: "var(--cyan)", tooltip: "Execute swaps on DEX" },
-                { name: "okx-defi-invest", status: "ACTIVE", color: "var(--green)", tooltip: "LP position management" },
-                { name: "okx-agentic-wallet", status: "ACTIVE", color: "var(--green)", tooltip: "TEE-signed transactions" },
-                { name: "okx-security", status: "ACTIVE", color: "var(--green)", tooltip: "Signature verification" },
-                { name: "okx-x402-payment", status: "ACTIVE", color: "var(--green)", tooltip: "HTTP micropayments" },
-                { name: "okx-audit-log", status: "ACTIVE", color: "var(--green)", tooltip: "Immutable audit trail" },
+                { name: "okx-dex-market", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-dex-swap", status: "READY", color: "var(--cyan)" },
+                { name: "okx-defi-invest", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-agentic-wallet", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-security", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-x402-payment", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-audit-log", status: "ACTIVE", color: "var(--green)" },
               ].map((mod) => (
                 <div
                   key={mod.name}
@@ -573,26 +707,32 @@ export default function Home() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    padding: "6px 10px",
-                    background: "rgba(255,255,255,0.02)",
-                    borderRadius: 2,
-                    border: "1px solid var(--border)",
+                    padding: "8px 12px",
+                    background: "rgba(255,255,255,0.03)",
+                    borderRadius: 3,
+                    border: `1px solid ${mod.color}22`,
                   }}
                 >
                   <span
                     style={{
-                      fontSize: 12,
-                      color: "var(--text-dim)",
+                      fontSize: 13,
+                      color: "var(--text-primary)",
                       fontFamily: "var(--font-hud), monospace",
+                      fontWeight: 500,
                     }}
                   >
                     {mod.name}
                   </span>
                   <span
                     style={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: mod.color,
                       letterSpacing: "0.1em",
+                      fontWeight: 700,
+                      background: `${mod.color}18`,
+                      padding: "2px 7px",
+                      borderRadius: 2,
+                      border: `1px solid ${mod.color}44`,
                     }}
                   >
                     {mod.status}
@@ -602,19 +742,20 @@ export default function Home() {
             </div>
             <div
               style={{
-                marginTop: 16,
-                padding: 8,
+                marginTop: 14,
+                padding: "10px 12px",
                 background: "rgba(0,0,0,0.4)",
-                borderRadius: 2,
+                borderRadius: 3,
                 border: "1px solid var(--border)",
               }}
             >
               <div
                 style={{
                   fontSize: 12,
-                  color: "var(--text-dim)",
+                  color: "var(--cyan)",
                   marginBottom: 6,
                   letterSpacing: "0.1em",
+                  fontWeight: 700,
                 }}
               >
                 MCP TOOLS EXPOSED
@@ -628,9 +769,9 @@ export default function Home() {
                 <div
                   key={tool}
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     color: "var(--cyan)",
-                    lineHeight: 1.9,
+                    lineHeight: 2,
                     fontFamily: "var(--font-hud), monospace",
                   }}
                 >
@@ -693,16 +834,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Row 3: Terminal + Cycle ────────────────────────────────── */}
-        <div
-          className="animate-in"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-            marginBottom: 16,
-          }}
-        >
+        {/* ── Row 3: Full-width Terminal ─────────────────────────── */}
+        <div className="animate-in" style={{ marginBottom: 16 }}>
           <div className="card-hud hover-card terminal-panel p-5">
             <div
               style={{
@@ -727,12 +860,18 @@ export default function Home() {
             </div>
             <TerminalLog logs={status.logs} />
           </div>
+        </div>
 
+        {/* ── Row 4: Earn-pay-earn cycle ──────────────────────────── */}
+        <div
+          className="animate-in"
+          style={{ marginBottom: 16 }}
+        >
           {/* Earn-pay-earn cycle */}
           <div className="card-hud hover-card p-5">
             <div
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
                 marginBottom: 16,
@@ -740,115 +879,202 @@ export default function Home() {
             >
               EARN-PAY-EARN CYCLE
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                gap: 0,
+              }}
+            >
               {[
                 {
                   step: "01",
                   label: "LP OPENS POSITION",
                   sub: "onchainos defi invest → Uniswap V3 on X Layer",
                   color: "var(--cyan)",
-                  tooltip: "LP creates concentrated liquidity position",
                 },
                 {
                   step: "02",
                   label: "FEES ACCRUE",
                   sub: "V3 trading fees → LP balance",
                   color: "var(--cyan)",
-                  tooltip: "Trading fees accumulate as swaps happen",
                 },
                 {
                   step: "03",
                   label: "DELTA COMPUTED",
                   sub: "ΔV/ΔS = L/√S − L/√Pb | adaptive σ regime",
                   color: "var(--purple)",
-                  tooltip: "Agent calculates delta using Uniswap V3 formula",
                 },
                 {
                   step: "04",
                   label: "HEDGE EXECUTED",
                   sub: "onchainos swap execute ETH→USDC",
                   color: "var(--purple)",
-                  tooltip: "Agent swaps to offset directional risk",
                 },
                 {
                   step: "05",
                   label: "FEES COMPOUNDED",
                   sub: "onchainos defi collect V3_FEE → reinvest",
                   color: "var(--green)",
-                  tooltip: "Collected fees reinvested into LP position",
                 },
                 {
                   step: "06",
                   label: "PREMIUM PAID",
                   sub: "x402 HTTP payment → ParryVault.sol",
                   color: "var(--green)",
-                  tooltip: "Protection premium deducted via x402",
                 },
                 {
                   step: "07",
-                  label: "IL CLAIM (if triggered)",
+                  label: "IL CLAIM",
                   sub: "agent sig → vault payout → NFT burned",
                   color: "var(--amber)",
-                  tooltip: "If IL > threshold, LP can claim insurance payout",
                 },
               ].map(({ step, label, sub, color }, i) => (
                 <div
                   key={step}
                   style={{
                     display: "flex",
-                    alignItems: "flex-start",
-                    gap: 10,
-                    padding: "8px 0",
-                    borderBottom:
-                      i < 6 ? "1px solid var(--border)" : "none",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    padding: "14px 10px",
+                    borderRight: i < 6 ? "1px solid var(--border)" : "none",
+                    textAlign: "center",
+                    position: "relative",
                   }}
                 >
-                  <span
+                  <div
                     style={{
                       fontSize: 10,
                       color: "var(--text-faint)",
-                      minWidth: 20,
                       fontFamily: "var(--font-hud), monospace",
+                      marginBottom: 6,
                     }}
                   >
                     {step}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color,
-                        letterSpacing: "0.05em",
-                        fontFamily: "var(--font-orbitron), sans-serif",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {label}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "var(--text-dim)",
-                        marginTop: 2,
-                      }}
-                    >
-                      {sub}
-                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color,
+                      letterSpacing: "0.05em",
+                      fontFamily: "var(--font-orbitron), sans-serif",
+                      fontWeight: 700,
+                      marginBottom: 6,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "var(--text-dim)",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {sub}
                   </div>
                   {i < 6 && (
                     <div
                       style={{
+                        position: "absolute",
+                        right: -8,
+                        top: "50%",
+                        transform: "translateY(-50%)",
                         color: "var(--text-faint)",
-                        fontSize: 13,
-                        alignSelf: "center",
+                        fontSize: 14,
+                        zIndex: 1,
                       }}
                     >
-                      ↓
+                      →
                     </div>
                   )}
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* ── Bottom Showcase Carousel ────────────────────────────── */}
+        <div
+          className="animate-in card-hud"
+          style={{
+            marginBottom: 16,
+            padding: "40px 28px 32px",
+            background: "linear-gradient(135deg, rgba(0,212,255,0.05), rgba(124,58,237,0.04))",
+            textAlign: "center",
+            minHeight: 220,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-dim)",
+              letterSpacing: "0.25em",
+              marginBottom: 28,
+            }}
+          >
+            LIVE DASHBOARD MONITORING — WHAT YOU ARE SEEING
+          </div>
+          <div key={bottomIdx} className="animate-in">
+            <div
+              style={{
+                fontFamily: "var(--font-orbitron), sans-serif",
+                fontSize: 60,
+                fontWeight: 800,
+                color: "var(--cyan)",
+                letterSpacing: "0.06em",
+                lineHeight: 1.1,
+              }}
+              className="text-glow-cyan"
+            >
+              {BOTTOM_ITEMS[bottomIdx].value}
+            </div>
+            <div
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                letterSpacing: "0.12em",
+                marginTop: 14,
+                fontFamily: "var(--font-orbitron), sans-serif",
+              }}
+            >
+              {BOTTOM_ITEMS[bottomIdx].label}
+            </div>
+            <div
+              style={{
+                fontSize: 16,
+                color: "var(--text-dim)",
+                marginTop: 10,
+                maxWidth: 640,
+                marginLeft: "auto",
+                marginRight: "auto",
+                lineHeight: 1.6,
+              }}
+            >
+              {BOTTOM_ITEMS[bottomIdx].desc}
+            </div>
+          </div>
+          {/* Progress dots */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 28 }}>
+            {BOTTOM_ITEMS.map((_, i) => (
+              <div
+                key={i}
+                onClick={() => setBottomIdx(i)}
+                style={{
+                  width: 36,
+                  height: 4,
+                  borderRadius: 2,
+                  background: i === bottomIdx ? "var(--cyan)" : "var(--border-glow)",
+                  transition: "background 0.4s",
+                  cursor: "pointer",
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 10, letterSpacing: "0.1em" }}>
+            {bottomIdx + 1} / {BOTTOM_ITEMS.length} — AUTO-ADVANCES EVERY 4s
           </div>
         </div>
 
