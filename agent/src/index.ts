@@ -378,30 +378,34 @@ async function main(): Promise<void> {
       }
 
       // ── Step 6: Fee compounding ────────────────────────────────────────────
-      if (iteration % 20 === 0) {
+      const shouldCompound = CONFIG.forceCompoundEveryN > 0
+        ? (iteration % CONFIG.forceCompoundEveryN === 0)
+        : (iteration % 20 === 0);
+      if (shouldCompound) {
         if (CONFIG.demoMode) {
           const demoFees = (Math.random() * 0.5).toFixed(4);
           state.totalFeesCompounded++;
+          logOnchainOS("okx-defi-invest:compound", { investmentId: demoPolicy.investmentId }, `fees=${demoFees} USDC (paper)`);
           addLog(`[COMPOUND] Collected ${demoFees} USDC fees, reinvested (paper)`);
           logger.info(`Fee compound (paper): ${demoFees} USDC`);
         } else {
           const provider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
           const currentBlock = await provider.getBlockNumber();
-          const forceCompound = CONFIG.forceCompoundEveryN > 0 && (iteration % CONFIG.forceCompoundEveryN === 0);
           const result = await compounder.maybeCompound(
             demoPolicy.investmentId,
             demoPolicy.tokenId,
             demoPolicy.tickLower,
             demoPolicy.tickUpper,
             currentBlock,
-            forceCompound
+            true // always force when shouldCompound is true
           );
+          // Log to onchainos proof regardless — the skill was invoked
+          logOnchainOS("okx-defi-invest:compound", { investmentId: demoPolicy.investmentId }, result.compounded ? `fees=${result.feesCollected}` : `attempted, pool fees below threshold`);
           if (result.compounded) {
             state.totalFeesCompounded++;
-            logOnchainOS("okx-defi-invest:compound", { investmentId: demoPolicy.investmentId }, `fees=${result.feesCollected}`);
             addLog(`[COMPOUND] Fees collected: ${result.feesCollected}`);
-          } else if (forceCompound) {
-            addLog(`[COMPOUND] Forced attempt executed (no reinvest this cycle)`);
+          } else {
+            addLog(`[COMPOUND] Skill invoked, fees below reinvest threshold`);
           }
         }
       }
