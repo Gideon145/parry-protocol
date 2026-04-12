@@ -141,17 +141,7 @@ export default function Home() {
     return () => clearInterval(demoInterval);
   }, [connected]);
 
-  // Intro carousel — cycle every 5s
-  useEffect(() => {
-    const t = setInterval(() => setIntroIdx((i) => (i + 1) % INTRO_POINTS.length), 5000);
-    return () => clearInterval(t);
-  }, []);
-
-  // Bottom carousel — cycle every 4s
-  useEffect(() => {
-    const t = setInterval(() => setBottomIdx((i) => (i + 1) % 6), 4000);
-    return () => clearInterval(t);
-  }, []);
+  // Carousels are manual-only (no auto-advance)
 
   const ilColor =
     status.ilPercent < 2
@@ -179,12 +169,48 @@ export default function Home() {
   const statusApiUrl = AGENT_URL.startsWith("http") ? AGENT_URL : FALLBACK_AGENT_URL;
 
   const BOTTOM_ITEMS = [
-    { label: "ETH PRICE FEED", desc: "Live price from OnchainOS market skill → OKX DEX data", value: `$${status.currentPrice.toFixed(2)}` },
-    { label: "IL EXPOSURE", desc: "Impermanent Loss computed using Uniswap V3 exact math every 2s", value: `${status.ilPercent.toFixed(3)}%` },
-    { label: "DELTA HEDGING", desc: "Autonomous hedge via OKX DEX swap — keeps LP delta near zero", value: `${hedgePct}% COVERED` },
-    { label: "VOLATILITY REGIME", desc: "Adaptive hedge sizing based on realized market volatility σ", value: `${vol}% σ [${status.volRegime}]` },
-    { label: "HEDGES EXECUTED", desc: "Total autonomous hedge transactions confirmed on X Layer Testnet", value: `${status.totalHedgesTx} ON-CHAIN TXs` },
-    { label: "FEES COMPOUNDED", desc: "V3 trading fees collected and reinvested — earn on earn cycle", value: `${status.totalFeesCompounded} REINVESTMENTS` },
+    {
+      label: "LIVE ETH PRICE FEED",
+      value: `$${status.currentPrice.toFixed(2)}`,
+      why: "WHY IT MATTERS",
+      detail: "Every LP position gains or loses value as ETH price moves. Parry tracks this in real-time so hedges trigger at exactly the right moment — not too early, not too late.",
+      advantage: "Most LPs check price manually. Parry reacts in under 2 seconds, 24/7.",
+    },
+    {
+      label: "IMPERMANENT LOSS EXPOSURE",
+      value: `${status.ilPercent.toFixed(3)}%`,
+      why: "WHY IT MATTERS",
+      detail: "IL is the hidden cost of being an LP. When ETH moves away from your entry price, you end up with less value than if you had just held. Parry quantifies this loss every tick.",
+      advantage: "IL is invisible to most LPs until it's too late. Parry shows it live and acts before it compounds.",
+    },
+    {
+      label: "DELTA HEDGE COVERAGE",
+      value: `${hedgePct}% COVERED`,
+      why: "WHY IT MATTERS",
+      detail: "Delta measures your directional exposure to ETH price. A delta of 0.5 means you're effectively holding 0.5 ETH. Parry autonomously swaps to keep delta near zero — neutralising price risk.",
+      advantage: "No manual rebalancing. The agent executes swaps on OKX DEX without any human input.",
+    },
+    {
+      label: "VOLATILITY REGIME",
+      value: `${vol}% σ [${status.volRegime}]`,
+      why: "WHY IT MATTERS",
+      detail: "High volatility = faster IL growth = need more hedging. Parry's volatility engine detects regime changes (LOW/MEDIUM/HIGH/EXTREME) and adjusts hedge ratio dynamically.",
+      advantage: "Static hedge ratios over-hedge in calm markets and under-hedge in turbulent ones. Parry adapts.",
+    },
+    {
+      label: "ON-CHAIN HEDGES EXECUTED",
+      value: `${status.totalHedgesTx} TRANSACTIONS`,
+      why: "WHY IT MATTERS",
+      detail: "Every hedge transaction is broadcast to X Layer Testnet and permanently recorded. This creates an immutable audit trail — verifiable by anyone on OKLink explorer.",
+      advantage: "100% transparent. Unlike off-chain bots, every Parry action is on-chain and provable.",
+    },
+    {
+      label: "FEES COMPOUNDED",
+      value: `${status.totalFeesCompounded} REINVESTMENTS`,
+      why: "WHY IT MATTERS",
+      detail: "V3 trading fees accumulate in the LP position. Parry automatically collects them via onchainos defi skill and reinvests — so your fees earn more fees. True earn-on-earn.",
+      advantage: "Manual fee compounding costs gas and time. Parry does it autonomously every N iterations.",
+    },
   ];
 
   return (
@@ -878,141 +904,104 @@ export default function Home() {
 
         {/* ── Row 4: Earn-pay-earn cycle ──────────────────────────── */}
         <div className="animate-in" style={{ marginBottom: 16 }}>
-          <div className="card-hud hover-card p-5">
+          <div className="card-hud p-5">
             <div style={{ fontSize: 15, color: "var(--cyan)", letterSpacing: "0.15em", marginBottom: 20, fontWeight: 700 }}>
-              EARN-PAY-EARN CYCLE
+              EARN-PAY-EARN CYCLE — HOW PARRY WORKS
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
               {[
-                { step: "01", label: "LP OPENS POSITION", sub: "onchainos defi invest → Uniswap V3 on X Layer", color: "var(--cyan)" },
-                { step: "02", label: "FEES ACCRUE", sub: "V3 trading fees accumulate in LP balance", color: "var(--cyan)" },
-                { step: "03", label: "DELTA COMPUTED", sub: "ΔV/ΔS = L/√S − L/√Pb | adaptive σ-regime hedge sizing", color: "var(--purple)" },
-                { step: "04", label: "HEDGE EXECUTED", sub: "Autonomous swap ETH→USDC via onchainos DEX skill", color: "var(--purple)" },
-                { step: "05", label: "FEES COMPOUNDED", sub: "onchainos defi collect V3_FEE → reinvest into LP", color: "var(--green)" },
-                { step: "06", label: "PREMIUM PAID", sub: "x402 HTTP micropayment → ParryVault.sol", color: "var(--green)" },
-                { step: "07", label: "IL CLAIM (if triggered)", sub: "Agent signature → vault payout → NFT certificate burned", color: "var(--amber)" },
-              ].map(({ step, label, sub, color }, i) => (
+                { step: "01", label: "LP OPENS POSITION", sub: "You deposit ETH+USDC into a Uniswap V3 concentrated liquidity pool on X Layer via Parry's vault contract" },
+                { step: "02", label: "FEES ACCRUE", sub: "Every swap through the pool earns you trading fees — proportional to your share of liquidity in range" },
+                { step: "03", label: "DELTA COMPUTED", sub: "Parry calculates your directional exposure every 15s using: ΔV/ΔS = L/√S − L/√Pb (exact V3 math)" },
+                { step: "04", label: "HEDGE EXECUTED", sub: "If delta > threshold, Parry swaps ETH→USDC on OKX DEX autonomously — no human needed, 24/7" },
+                { step: "05", label: "FEES COMPOUNDED", sub: "Accumulated V3 trading fees are collected and reinvested back into your LP position automatically" },
+                { step: "06", label: "PREMIUM PAID", sub: "A small protection fee is deducted via x402 HTTP micropayment protocol — pay only when protected" },
+                { step: "07", label: "IL CLAIM", sub: "If IL exceeds the policy threshold, the agent signs a claim, vault pays out, NFT certificate is burned" },
+              ].map(({ step, label, sub }, i) => (
                 <div
                   key={step}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 20,
-                    padding: "16px 18px",
-                    borderBottom: i < 6 ? "1px solid var(--border)" : "none",
-                    background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
-                  }}
+                  className="earn-card"
                 >
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-faint)", fontFamily: "var(--font-orbitron), sans-serif", minWidth: 44 }}>
-                    {step}
-                  </div>
-                  <div style={{ fontSize: 20, color, fontFamily: "var(--font-orbitron), sans-serif", fontWeight: 700, letterSpacing: "0.06em", minWidth: 280 }}>
-                    {label}
-                  </div>
-                  <div style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.5, flex: 1 }}>
-                    {sub}
-                  </div>
-                  {i < 6 && (
-                    <div style={{ fontSize: 20, color: "var(--text-faint)", flexShrink: 0 }}>↓</div>
-                  )}
+                  <div className="earn-card-step">{step}</div>
+                  <div className="earn-card-label">{label}</div>
+                  <div className="earn-card-sub">{sub}</div>
+                  {i < 6 && <div className="earn-card-arrow">→</div>}
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── Bottom Showcase Carousel ────────────────────────────── */}
-        <div
-          className="animate-in card-hud"
-          style={{
-            marginBottom: 16,
-            padding: "40px 28px 32px",
-            background: "linear-gradient(135deg, rgba(0,212,255,0.05), rgba(124,58,237,0.04))",
-            textAlign: "center",
-            minHeight: 220,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--text-dim)",
-              letterSpacing: "0.25em",
-              marginBottom: 28,
-            }}
-          >
-            LIVE DASHBOARD MONITORING — WHAT YOU ARE SEEING
+        {/* ── Bottom Showcase ───────────────────────────────────────── */}
+        <div className="animate-in card-hud" style={{ marginBottom: 16, padding: "32px 28px 28px" }}>
+          <div style={{ fontSize: 15, color: "var(--cyan)", letterSpacing: "0.2em", marginBottom: 24, fontWeight: 700, textAlign: "center" }}>
+            LIVE DASHBOARD — WHAT YOU ARE SEEING &amp; WHY IT MATTERS
           </div>
-          <div key={bottomIdx} className="animate-in">
-            <div
-              style={{
-                fontFamily: "var(--font-orbitron), sans-serif",
-                fontSize: 60,
-                fontWeight: 800,
-                color: "var(--cyan)",
-                letterSpacing: "0.06em",
-                lineHeight: 1.1,
-              }}
-              className="text-glow-cyan"
-            >
-              {BOTTOM_ITEMS[bottomIdx].value}
-            </div>
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: "var(--text-primary)",
-                letterSpacing: "0.12em",
-                marginTop: 14,
-                fontFamily: "var(--font-orbitron), sans-serif",
-              }}
-            >
-              {BOTTOM_ITEMS[bottomIdx].label}
-            </div>
-            <div
-              style={{
-                fontSize: 16,
-                color: "var(--text-dim)",
-                marginTop: 10,
-                maxWidth: 640,
-                marginLeft: "auto",
-                marginRight: "auto",
-                lineHeight: 1.6,
-              }}
-            >
-              {BOTTOM_ITEMS[bottomIdx].desc}
-            </div>
-          </div>
-          {/* Nav row */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 20, marginTop: 28 }}>
-            <button
-              onClick={() => setBottomIdx((i) => (i - 1 + BOTTOM_ITEMS.length) % BOTTOM_ITEMS.length)}
-              className="carousel-btn"
-            >
-              ← PREV
-            </button>
-            {BOTTOM_ITEMS.map((_, i) => (
+
+          {/* Active card */}
+          <div key={bottomIdx} className="animate-in" style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 2fr",
+            gap: 28,
+            padding: "24px 28px",
+            background: "rgba(0,212,255,0.04)",
+            border: "1px solid var(--cyan)",
+            borderRadius: 4,
+            marginBottom: 20,
+          }}>
+            <div style={{ borderRight: "1px solid var(--border)", paddingRight: 28 }}>
+              <div style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.2em", marginBottom: 10 }}>LIVE VALUE</div>
               <div
-                key={i}
-                onClick={() => setBottomIdx(i)}
-                style={{
-                  width: 36,
-                  height: 4,
-                  borderRadius: 2,
-                  background: i === bottomIdx ? "var(--cyan)" : "var(--border-glow)",
-                  transition: "background 0.4s",
-                  cursor: "pointer",
-                }}
-              />
-            ))}
-            <button
-              onClick={() => setBottomIdx((i) => (i + 1) % BOTTOM_ITEMS.length)}
-              className="carousel-btn"
-            >
-              NEXT →
-            </button>
+                style={{ fontFamily: "var(--font-orbitron), sans-serif", fontSize: 44, fontWeight: 800, color: "var(--cyan)", lineHeight: 1.1 }}
+                className="text-glow-cyan"
+              >
+                {BOTTOM_ITEMS[bottomIdx].value}
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "0.1em", marginTop: 12, fontFamily: "var(--font-orbitron), sans-serif" }}>
+                {BOTTOM_ITEMS[bottomIdx].label}
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "var(--cyan)", letterSpacing: "0.2em", marginBottom: 6, fontWeight: 700 }}>WHAT THIS IS</div>
+                <div style={{ fontSize: 16, color: "var(--text-primary)", lineHeight: 1.65 }}>{BOTTOM_ITEMS[bottomIdx].detail}</div>
+              </div>
+              <div style={{ padding: "12px 16px", background: "rgba(0,255,136,0.05)", border: "1px solid rgba(0,255,136,0.2)", borderRadius: 3 }}>
+                <div style={{ fontSize: 11, color: "var(--green)", letterSpacing: "0.2em", marginBottom: 4, fontWeight: 700 }}>PARRY ADVANTAGE</div>
+                <div style={{ fontSize: 15, color: "var(--text-primary)", lineHeight: 1.55 }}>{BOTTOM_ITEMS[bottomIdx].advantage}</div>
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 10, letterSpacing: "0.1em" }}>
-            {bottomIdx + 1} / {BOTTOM_ITEMS.length}
+
+          {/* Nav */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16 }}>
+            <button onClick={() => setBottomIdx((i) => (i - 1 + BOTTOM_ITEMS.length) % BOTTOM_ITEMS.length)} className="carousel-btn">← PREV</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              {BOTTOM_ITEMS.map((item, i) => (
+                <button
+                  key={i}
+                  onClick={() => setBottomIdx(i)}
+                  style={{
+                    padding: "4px 12px",
+                    fontSize: 11,
+                    fontFamily: "var(--font-hud), monospace",
+                    letterSpacing: "0.08em",
+                    border: `1px solid ${i === bottomIdx ? "var(--cyan)" : "var(--border-glow)"}`,
+                    background: i === bottomIdx ? "rgba(0,212,255,0.12)" : "transparent",
+                    color: i === bottomIdx ? "var(--cyan)" : "var(--text-dim)",
+                    borderRadius: 2,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setBottomIdx((i) => (i + 1) % BOTTOM_ITEMS.length)} className="carousel-btn">NEXT →</button>
+          </div>
+          <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-faint)", marginTop: 10, letterSpacing: "0.1em" }}>
+            {bottomIdx + 1} / {BOTTOM_ITEMS.length} — USE PREV/NEXT OR CLICK A NUMBER
           </div>
         </div>
 
