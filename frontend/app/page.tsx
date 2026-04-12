@@ -337,25 +337,39 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Progress dots */}
-          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-            {INTRO_POINTS.map((_, i) => (
-              <div
-                key={i}
-                onClick={() => setIntroIdx(i)}
-                style={{
-                  width: 28,
-                  height: 4,
-                  borderRadius: 2,
-                  background: i === introIdx ? "var(--cyan)" : "var(--border-glow)",
-                  transition: "background 0.4s",
-                  cursor: "pointer",
-                }}
-              />
-            ))}
+          {/* Nav row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 18 }}>
+            <button
+              onClick={() => setIntroIdx((i) => (i - 1 + INTRO_POINTS.length) % INTRO_POINTS.length)}
+              className="carousel-btn"
+            >
+              ← PREV
+            </button>
+            <div style={{ display: "flex", gap: 8, flex: 1 }}>
+              {INTRO_POINTS.map((_, i) => (
+                <div
+                  key={i}
+                  onClick={() => setIntroIdx(i)}
+                  style={{
+                    flex: 1,
+                    height: 4,
+                    borderRadius: 2,
+                    background: i === introIdx ? "var(--cyan)" : "var(--border-glow)",
+                    transition: "background 0.4s",
+                    cursor: "pointer",
+                  }}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => setIntroIdx((i) => (i + 1) % INTRO_POINTS.length)}
+              className="carousel-btn"
+            >
+              NEXT →
+            </button>
           </div>
           <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.1em" }}>
-            {introIdx + 1} / {INTRO_POINTS.length} — AUTO-ADVANCES EVERY 5s
+            {introIdx + 1} / {INTRO_POINTS.length}
           </div>
         </div>
 
@@ -395,7 +409,7 @@ export default function Home() {
                 color: "var(--cyan)",
                 letterSpacing: "0.18em",
               }}
-              className="text-glow-cyan"
+              className="text-glow-cyan live-demo-blink"
             >
               LIVE DEMO TEST
             </span>
@@ -863,131 +877,43 @@ export default function Home() {
         </div>
 
         {/* ── Row 4: Earn-pay-earn cycle ──────────────────────────── */}
-        <div
-          className="animate-in"
-          style={{ marginBottom: 16 }}
-        >
-          {/* Earn-pay-earn cycle */}
+        <div className="animate-in" style={{ marginBottom: 16 }}>
           <div className="card-hud hover-card p-5">
-            <div
-              style={{
-                fontSize: 13,
-                color: "var(--text-dim)",
-                letterSpacing: "0.15em",
-                marginBottom: 16,
-              }}
-            >
+            <div style={{ fontSize: 15, color: "var(--cyan)", letterSpacing: "0.15em", marginBottom: 20, fontWeight: 700 }}>
               EARN-PAY-EARN CYCLE
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
-                gap: 0,
-              }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
               {[
-                {
-                  step: "01",
-                  label: "LP OPENS POSITION",
-                  sub: "onchainos defi invest → Uniswap V3 on X Layer",
-                  color: "var(--cyan)",
-                },
-                {
-                  step: "02",
-                  label: "FEES ACCRUE",
-                  sub: "V3 trading fees → LP balance",
-                  color: "var(--cyan)",
-                },
-                {
-                  step: "03",
-                  label: "DELTA COMPUTED",
-                  sub: "ΔV/ΔS = L/√S − L/√Pb | adaptive σ regime",
-                  color: "var(--purple)",
-                },
-                {
-                  step: "04",
-                  label: "HEDGE EXECUTED",
-                  sub: "onchainos swap execute ETH→USDC",
-                  color: "var(--purple)",
-                },
-                {
-                  step: "05",
-                  label: "FEES COMPOUNDED",
-                  sub: "onchainos defi collect V3_FEE → reinvest",
-                  color: "var(--green)",
-                },
-                {
-                  step: "06",
-                  label: "PREMIUM PAID",
-                  sub: "x402 HTTP payment → ParryVault.sol",
-                  color: "var(--green)",
-                },
-                {
-                  step: "07",
-                  label: "IL CLAIM",
-                  sub: "agent sig → vault payout → NFT burned",
-                  color: "var(--amber)",
-                },
+                { step: "01", label: "LP OPENS POSITION", sub: "onchainos defi invest → Uniswap V3 on X Layer", color: "var(--cyan)" },
+                { step: "02", label: "FEES ACCRUE", sub: "V3 trading fees accumulate in LP balance", color: "var(--cyan)" },
+                { step: "03", label: "DELTA COMPUTED", sub: "ΔV/ΔS = L/√S − L/√Pb | adaptive σ-regime hedge sizing", color: "var(--purple)" },
+                { step: "04", label: "HEDGE EXECUTED", sub: "Autonomous swap ETH→USDC via onchainos DEX skill", color: "var(--purple)" },
+                { step: "05", label: "FEES COMPOUNDED", sub: "onchainos defi collect V3_FEE → reinvest into LP", color: "var(--green)" },
+                { step: "06", label: "PREMIUM PAID", sub: "x402 HTTP micropayment → ParryVault.sol", color: "var(--green)" },
+                { step: "07", label: "IL CLAIM (if triggered)", sub: "Agent signature → vault payout → NFT certificate burned", color: "var(--amber)" },
               ].map(({ step, label, sub, color }, i) => (
                 <div
                   key={step}
                   style={{
                     display: "flex",
-                    flexDirection: "column",
                     alignItems: "center",
-                    padding: "14px 10px",
-                    borderRight: i < 6 ? "1px solid var(--border)" : "none",
-                    textAlign: "center",
-                    position: "relative",
+                    gap: 20,
+                    padding: "16px 18px",
+                    borderBottom: i < 6 ? "1px solid var(--border)" : "none",
+                    background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: "var(--text-faint)",
-                      fontFamily: "var(--font-hud), monospace",
-                      marginBottom: 6,
-                    }}
-                  >
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-faint)", fontFamily: "var(--font-orbitron), sans-serif", minWidth: 44 }}>
                     {step}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color,
-                      letterSpacing: "0.05em",
-                      fontFamily: "var(--font-orbitron), sans-serif",
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      lineHeight: 1.3,
-                    }}
-                  >
+                  <div style={{ fontSize: 20, color, fontFamily: "var(--font-orbitron), sans-serif", fontWeight: 700, letterSpacing: "0.06em", minWidth: 280 }}>
                     {label}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: "var(--text-dim)",
-                      lineHeight: 1.4,
-                    }}
-                  >
+                  <div style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.5, flex: 1 }}>
                     {sub}
                   </div>
                   {i < 6 && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: -8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "var(--text-faint)",
-                        fontSize: 14,
-                        zIndex: 1,
-                      }}
-                    >
-                      →
-                    </div>
+                    <div style={{ fontSize: 20, color: "var(--text-faint)", flexShrink: 0 }}>↓</div>
                   )}
                 </div>
               ))}
@@ -1056,8 +982,14 @@ export default function Home() {
               {BOTTOM_ITEMS[bottomIdx].desc}
             </div>
           </div>
-          {/* Progress dots */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 28 }}>
+          {/* Nav row */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 20, marginTop: 28 }}>
+            <button
+              onClick={() => setBottomIdx((i) => (i - 1 + BOTTOM_ITEMS.length) % BOTTOM_ITEMS.length)}
+              className="carousel-btn"
+            >
+              ← PREV
+            </button>
             {BOTTOM_ITEMS.map((_, i) => (
               <div
                 key={i}
@@ -1072,9 +1004,15 @@ export default function Home() {
                 }}
               />
             ))}
+            <button
+              onClick={() => setBottomIdx((i) => (i + 1) % BOTTOM_ITEMS.length)}
+              className="carousel-btn"
+            >
+              NEXT →
+            </button>
           </div>
           <div style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 10, letterSpacing: "0.1em" }}>
-            {bottomIdx + 1} / {BOTTOM_ITEMS.length} — AUTO-ADVANCES EVERY 4s
+            {bottomIdx + 1} / {BOTTOM_ITEMS.length}
           </div>
         </div>
 

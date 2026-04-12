@@ -162,6 +162,31 @@ html, body {
   box-shadow: 0 16px 48px rgba(0, 255, 136, 0.12), 0 0 40px rgba(102, 0, 204, 0.08);
 }
 
+.carousel-btn {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: var(--font-hud), monospace;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  padding: 8px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+.carousel-btn:hover {
+  background: rgba(0, 212, 255, 0.18);
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.25);
+}
+
+.live-demo-blink {
+  animation: liveTextBlink 2.8s ease-in-out infinite;
+}
+@keyframes liveTextBlink {
+  0%, 100% { opacity: 1; text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan-dim); }
+  50% { opacity: 0.45; text-shadow: none; }
+}
+
 @keyframes fadeUpIn {
   from {
     opacity: 0;
