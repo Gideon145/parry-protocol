@@ -93,6 +93,9 @@ export default function Home() {
   const [introIdx, setIntroIdx] = useState(0);
   const [bottomIdx, setBottomIdx] = useState(0);
   const [displayLogs, setDisplayLogs] = useState<string[]>(MOCK_STATUS.logs);
+  const [x402Loading, setX402Loading] = useState(false);
+  const [x402Result, setX402Result] = useState<Record<string, unknown> | null>(null);
+  const [x402Error, setX402Error] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -1010,6 +1013,102 @@ export default function Home() {
         {/* ── MCP Interactive Console ────────────────────────────── */}
         <div className="animate-in" style={{ marginBottom: 16 }}>
           <AgentChat />
+        </div>
+
+        {/* ── x402 Live Payment Demo ─────────────────────────────── */}
+        <div className="animate-in card-hud p-5" style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 15, color: "var(--cyan)", letterSpacing: "0.15em", marginBottom: 6, fontWeight: 700 }}>
+            x402 PAYMENT DEMO — BUY PROTECTION
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 18, lineHeight: 1.6 }}>
+            Click to activate a simulated IL protection policy via the x402 micropayment protocol.
+            In production, this requires an OnchainOS <code style={{ color: "var(--cyan)", background: "rgba(0,212,255,0.08)", padding: "1px 5px", borderRadius: 2 }}>okx-x402-payment</code> skill signature paying in OKB on X Layer (Chain ID 1952).
+          </div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 18 }}>
+            <button
+              onClick={async () => {
+                setX402Loading(true);
+                setX402Error(null);
+                setX402Result(null);
+                try {
+                  const res = await fetch("https://radiant-recreation-production-f473.up.railway.app/protect/demo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      lp: status.agentWallet || "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
+                      poolAddress: "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",
+                      tickLower: status.tickLower ?? -600,
+                      tickUpper: status.tickUpper ?? 600,
+                      durationDays: 1,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error || "Request failed");
+                  setX402Result(data);
+                } catch (e) {
+                  setX402Error(String(e));
+                } finally {
+                  setX402Loading(false);
+                }
+              }}
+              disabled={x402Loading}
+              style={{
+                fontFamily: "var(--font-hud), monospace",
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                padding: "12px 28px",
+                background: x402Loading ? "rgba(102,0,204,0.15)" : "rgba(102,0,204,0.2)",
+                border: "2px solid var(--purple)",
+                color: "var(--purple)",
+                borderRadius: 3,
+                cursor: x402Loading ? "wait" : "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              {x402Loading ? "⏳ SENDING x402..." : "⬡ BUY PROTECTION (DEMO)"}
+            </button>
+            <a
+              href="https://radiant-recreation-production-f473.up.railway.app/payment-info"
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontFamily: "var(--font-hud), monospace", fontSize: 11, color: "var(--text-dim)", letterSpacing: "0.1em" }}
+            >
+              VIEW PAYMENT REQUIREMENTS →
+            </a>
+          </div>
+          {x402Result && (
+            <div style={{ background: "rgba(0,0,0,0.45)", border: "1px solid var(--green)", borderRadius: 3, padding: "14px 16px" }}>
+              <div style={{ fontSize: 11, color: "var(--green)", letterSpacing: "0.2em", marginBottom: 8, fontWeight: 700 }}>
+                ✓ POLICY ACTIVATED
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 24px" }}>
+                {[
+                  ["POLICY ID", (x402Result.policyId as string)?.slice(0, 22) + "..."],
+                  ["LP ADDRESS", (x402Result.lp as string)?.slice(0, 14) + "..."],
+                  ["POOL", (x402Result.poolAddress as string)?.slice(0, 14) + "..."],
+                  ["DURATION", `${x402Result.durationDays} day`],
+                  ["PRICE", String(x402Result.pricePerDay)],
+                  ["CHAIN", String(x402Result.chain)],
+                  ["PAID UNTIL", new Date(x402Result.paidUntil as string).toLocaleString()],
+                  ["ACTIVATED", new Date(x402Result.activatedAt as string).toLocaleTimeString()],
+                ].map(([k, v]) => (
+                  <div key={k} style={{ display: "flex", gap: 8 }}>
+                    <span style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "var(--font-hud), monospace", letterSpacing: "0.1em", minWidth: 80 }}>{k}</span>
+                    <span style={{ fontSize: 11, color: "var(--text-primary)", fontFamily: "var(--font-hud), monospace", wordBreak: "break-all" }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 10, color: "var(--text-faint)", fontFamily: "var(--font-hud), monospace", lineHeight: 1.6 }}>
+                {x402Result.x402Note as string}
+              </div>
+            </div>
+          )}
+          {x402Error && (
+            <div style={{ fontSize: 12, color: "var(--red)", fontFamily: "var(--font-hud), monospace", marginTop: 8 }}>
+              ✗ {x402Error}
+            </div>
+          )}
         </div>
 
         {/* ── Row 4: Earn-pay-earn cycle ──────────────────────────── */}

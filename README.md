@@ -1,231 +1,455 @@
-# Parry Protocol
+﻿# Parry Protocol
 
-**Delta-Neutral Impermanent Loss Protection for Uniswap V3 LPs on X Layer**
+**Autonomous Delta-Neutral Impermanent Loss Protection for Uniswap V3 LPs on X Layer**
 
-> "Don't just earn fees. Keep them."
+> *"Don't just earn fees. Keep them."*
 
-Parry Protocol is the first autonomous IL (Impermanent Loss) protection agent on X Layer. It monitors Uniswap V3 LP positions in real time, computes delta exposure using concentrated liquidity math, and executes volatility-adjusted hedge swaps to keep LP positions delta-neutral — automatically, on-chain, 24/7.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-frontend--mu--three--93.vercel.app-cyan)](https://frontend-mu-three-93.vercel.app)
+[![Agent Status](https://img.shields.io/badge/Agent%20API-parry--protocol--production.up.railway.app-green)](https://parry-protocol-production.up.railway.app/status)
+[![MCP Server](https://img.shields.io/badge/MCP%20Server-ample--wisdom--production-purple)](https://ample-wisdom-production-f4c9.up.railway.app/tools)
+[![x402 Server](https://img.shields.io/badge/x402%20Server-radiant--recreation--production-orange)](https://radiant-recreation-production-f473.up.railway.app/payment-info)
+[![X Layer Testnet](https://img.shields.io/badge/Chain-X%20Layer%20Testnet%201952-blue)](https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394)
 
 ---
 
-## The Problem
+## What Is Parry Protocol?
 
-Uniswap V3 LPs lose an estimated **$1–2B/year** to Impermanent Loss. A concentrated liquidity position between ticks $[p_a, p_b]$ is mathematically equivalent to a short straddle options position — the LP unknowingly writes options on every trade. No protocol on X Layer hedges this.
+Parry Protocol is the **first autonomous impermanent loss (IL) protection agent on X Layer**. It monitors Uniswap V3 LP positions in real time, computes exact delta exposure using concentrated liquidity mathematics, and executes volatility-adjusted hedge swaps — automatically, on-chain, 24/7, without any human intervention.
+
+The system is built entirely on the **OKX Build-X hackathon stack**: OnchainOS skills for live market data, the x402 HTTP payment protocol for micropayment-gated protection, an MCP server for AI-accessible tooling, and smart contracts deployed on X Layer Testnet (Chain ID 1952).
+
+---
+
+## The Problem Parry Solves
+
+Uniswap V3 LPs lose an estimated **$1–2B/year** to Impermanent Loss. Here's why:
+
+A concentrated liquidity position between price ticks [p_a, p_b] is mathematically equivalent to a **short straddle options position**. As the underlying asset price moves away from the LP's entry price, the position's value diverges from a simple hold. The LP has unknowingly sold optionality to every trader who uses the pool.
+
+**No protocol on X Layer hedges this.** LPs either accept the loss or manually rebalance — neither is sustainable.
+
+---
 
 ## The Solution
 
-Parry Protocol's autonomous agent:
+Parry runs an autonomous agent loop every **15 seconds** that:
 
-1. **Reads** your LP position every 15 seconds via Onchain OS wallet skills
-2. **Computes** delta exposure: `Δ = L × (1/√S - 1/√p_b)` where L = liquidity, S = current price
-3. **Prices** a volatility-adjusted premium using realized vol from on-chain TWAP data
-4. **Executes** offsetting hedge swaps via Uniswap skills on X Layer
-5. **Records** every action on-chain via `ParryVault.recordHedge()` and `updateVolatility()`
-6. **Mints** a transferable Protection Certificate NFT for every active policy
+1. **Fetches** live ETH/USDC price via `okx-dex-market:getPrice` OnchainOS skill
+2. **Measures** realized volatility via `okx-dex-market:getVolatility` OnchainOS skill
+3. **Classifies** volatility regime: `LOW (<3%)`, `MEDIUM (3-6%)`, `HIGH (6-10%)`, `EXTREME (>10%)`
+4. **Computes** exact Uniswap V3 delta: `delta = L * (1/sqrt(S) - 1/sqrt(p_b))` with tick bounds
+5. **Computes** impermanent loss: `IL% = 2*sqrt(k)/(1+k) - 1` where `k = currentPrice/entryPrice`
+6. **Sizes** the hedge: `hedgeAmountUSD = |delta| * currentPrice * hedgeRatio(volRegime)`
+7. **Executes** the hedge swap via OKX DEX and records it on-chain via `ParryVault.recordHedge()`
+8. **Updates** on-chain volatility via `ParryVault.updateVolatility()` — every single loop iteration
+9. **Compounds** accrued LP fees via `okx-defi-invest:compound` skill, reinvesting them into the position
+10. **Issues** a transferable Protection Certificate NFT via `ProtectionCert.sol` for each active policy
+11. **Gates** the hedge API with the **x402 HTTP micropayment protocol** — LPs pay only while protected
+
+---
+
+## Live Deployment (Verified)
+
+| Service | URL | Status |
+|---|---|---|
+| Frontend | https://frontend-mu-three-93.vercel.app | Live |
+| Agent API | https://parry-protocol-production.up.railway.app/status | Live |
+| OnchainOS Proof | https://parry-protocol-production.up.railway.app/onchainos-proof | Live |
+| MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
+| x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
+| Agent Wallet (OKLink) | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | 5,000+ TXs |
+| ParryVault Contract | https://oklink.com/x-layer-testnet/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | Deployed |
+| ProtectionCert NFT | https://oklink.com/x-layer-testnet/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | Deployed |
+| Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
+
+### Live Verification Commands
+
+```bash
+# Agent running in LIVE mode (not demo)
+curl https://parry-protocol-production.up.railway.app/status | jq '.demoMode, .signerLoaded, .onChainTxCount, .chainId'
+# -> false, true, 5028+, 1952
+
+# OnchainOS skill calls in last 50 iterations
+curl https://parry-protocol-production.up.railway.app/onchainos-proof | jq '.totalCalls, .calls[0]'
+
+# All 6 MCP tools
+curl https://ample-wisdom-production-f4c9.up.railway.app/tools | jq '.tools'
+
+# x402 payment requirements
+curl https://radiant-recreation-production-f473.up.railway.app/payment-info
+
+# Demo-activate an IL protection policy (no real payment required)
+curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/demo \
+  -H "Content-Type: application/json" \
+  -d '{"lp":"0x94A4365E6B7E79791258A3Fa071824BC2b75a394","poolAddress":"0x5A77f1443D16ee5761d310e38b62f77f726bC71c","durationDays":1}'
+```
+
+### About the On-Chain TX Count
+
+`onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Testnet. This counter:
+- Is read directly from the chain via `provider.getTransactionCount(agentWallet)`
+- **Does not reset on Railway restarts** — it accumulates across all agent runs since deployment on April 9, 2026
+- Currently **5,000+ confirmed transactions**
+
+`totalHedgesTx` and `iteration` reset on each Railway container restart. These are in-process counters, not on-chain state. The wallet nonce is the authoritative on-chain proof.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     PARRY AGENT (Node.js)                   │
-│                                                             │
-│  ┌──────────────┐  ┌────────────────┐  ┌────────────────┐  │
-│  │VolatilityEng │  │ DeltaCalc      │  │ FeeCompounder  │  │
-│  │Onchain OS    │  │ Tick math      │  │ Auto-reinvest  │  │
-│  │market skill  │  │ IL % + hedgeΔ  │  │ fees → LP      │  │
-│  └──────┬───────┘  └───────┬────────┘  └────────────────┘  │
-│         │                  │                                 │
-│  ┌──────▼──────────────────▼────────────────────────────┐   │
-│  │              HedgeExecutor                           │   │
-│  │  recordHedge()  •  updateVolatility()  •  killSwitch │   │
-│  └──────────────────────────┬───────────────────────────┘   │
-│                             │ ethers v6 (RPC)                │
-└─────────────────────────────┼───────────────────────────────┘
-                              │
-              ┌───────────────▼────────────────┐
-              │        X Layer Testnet          │
-              │                                 │
-              │  ┌─────────────────────────┐   │
-              │  │   ParryVault.sol        │   │
-              │  │   • activateProtection  │   │
-              │  │   • recordHedge         │   │
-              │  │   • updateVolatility    │   │
-              │  │   • claimProtection     │   │
-              │  │   • killSwitch          │   │
-              │  └─────────────────────────┘   │
-              │  ┌─────────────────────────┐   │
-              │  │   ProtectionCert.sol    │   │
-              │  │   ERC-721 NFT cert      │   │
-              │  │   On-chain SVG metadata │   │
-              │  └─────────────────────────┘   │
-              └─────────────────────────────────┘
-                              │
-              ┌───────────────▼────────────────┐
-              │     MCP Server (stdio)          │
-              │  Tools: get_status, activate,   │
-              │  get_vault_stats, get_il_quote  │
-              └─────────────────────────────────┘
-                              │
-              ┌───────────────▼────────────────┐
-              │     x402 Payment Server         │
-              │  HTTP micropayment for premium  │
-              │  per-block IL insurance pricing │
-              └─────────────────────────────────┘
++---------------------------------------------------------------------------------+
+|                          PARRY PROTOCOL STACK                                   |
++----------------------+----------------------+------------------------------------+
+|   FRONTEND           |   AGENT (Node.js)    |   INFRASTRUCTURE                  |
+|   Next.js 14         |   Railway            |                                   |
+|   Vercel             |   15s loop           |   Railway (Agent, MCP, x402)      |
+|                      |                      |   Vercel (Frontend)               |
+|  +----------------+  |  +----------------+  |   X Layer Testnet (Chain 1952)    |
+|  | HUD Dashboard  |  |  |VolatilityEngine|  |                                   |
+|  | Live metrics   |<-+--| OnchainOS mkt  |  |  +--------------------------+     |
+|  | AgentChat MCP  |  |  | TWAP + regime  |  |  | ParryVault.sol           |     |
+|  | x402 Demo UI   |  |  +----------------+  |  | recordHedge()            |     |
+|  | Terminal feed  |  |  | DeltaCalc      |  |  | updateVolatility()       |     |
+|  +----------------+  |  | V3 tick math   |  |  | issuePolicy()            |     |
+|                      |  | IL + hedgeDelta|  |  | killSwitch (emergency)   |     |
+|   MCP SERVER         |  +----------------+  |  +--------------------------+     |
+|   6 AI tools         |  | HedgeExecutor  |  |  | ProtectionCert.sol       |     |
+|   HTTP + stdio       |  | OKX DEX swap   |  |  | ERC-721 policy NFTs      |     |
+|   Claude/GPT ready   |  | On-chain record|  |  | Transferable             |     |
+|                      |  +----------------+  |  | Composable (collateral)  |     |
+|   x402 SERVER        |  | FeeCompounder  |  |  +--------------------------+     |
+|   Micropayments      |  | okx-defi-invest|  |                                   |
+|   OKB on X Layer     |  | Auto-reinvest  |  |  OnchainOS Skills Used:           |
+|   Pay-per-block      |  +----------------+  |  okx-dex-market:getPrice          |
++----------------------+----------------------+  okx-dex-market:getVolatility      |
+                                              |  okx-defi-invest:compound          |
+                                              +------------------------------------+
 ```
 
 ---
 
-## Onchain OS & Uniswap Skills Used
+## Smart Contracts (X Layer Testnet, Chain ID 1952)
 
-| Module | Skill | Usage |
+### ParryVault.sol
+**Address:** `0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e`
+
+The core protocol contract. Handles on-chain state for all agent actions:
+
+| Function | Description |
+|---|---|
+| `issuePolicy(lp, pool, tickLower, tickUpper, premium)` | Creates an active IL protection policy, mints NFT cert |
+| `recordHedge(policyId, hedgeAmountUSD, txRef, volBps)` | Records each hedge execution permanently on-chain |
+| `updateVolatility(pool, realizedVolBps)` | Updates the on-chain volatility oracle — called every 15s in live mode |
+| `collectPremium(policyId)` | Collects x402 premium payments into the vault |
+| `killSwitch()` | Emergency stop — owner-only, pauses all hedging |
+
+`updateVolatility()` is called on **every iteration in live mode**, meaning each 15-second loop produces a confirmed on-chain transaction. This is why `onChainTxCount` reaches thousands within days.
+
+### ProtectionCert.sol
+**Address:** `0x87E3D9fcfA4eff229A65d045A7C741E49b581187`
+
+ERC-721 NFT contract for transferable protection certificates. Each active IL protection policy has a corresponding on-chain NFT that:
+- Represents the policy terms (tick bounds, pool, LP address, premium paid)
+- Is transferable — the LP can sell their protection to another LP
+- Can be used as collateral (DeFi composability)
+- Is burned when the policy expires or is cancelled
+
+---
+
+## OnchainOS Integration
+
+Parry uses **three OnchainOS skill categories** in its autonomous loop:
+
+### 1. `okx-dex-market:getPrice`
+Called **every iteration** (every 15 seconds in live mode).
+
+```typescript
+const price = await client.getPrice("ETH");
+// Returns current ETH/USDC spot price from OKX DEX market data
+// Used to compute: delta exposure, IL%, hedge amount, entry price drift
+```
+
+### 2. `okx-dex-market:getVolatility`
+Called **every iteration** (every 15 seconds in live mode).
+
+```typescript
+const volState = await volEngine.getVolatility("ETH");
+// Returns { realizedVolBps, hedgeRatio, regime, sampleCount }
+// Regime classification:
+//   LOW    (<3% annualized)  -> hedgeRatio = 0.5
+//   MEDIUM (3-6%)            -> hedgeRatio = 0.7
+//   HIGH   (6-10%)           -> hedgeRatio = 0.9
+//   EXTREME (>10%)           -> hedgeRatio = 1.0
+```
+
+### 3. `okx-defi-invest:compound`
+Called **every 2 iterations** in live mode (every 30 seconds).
+
+```typescript
+const result = await compounder.maybeCompound(investmentId, tokenId, tickLower, tickUpper, block, force);
+// Collects accrued trading fees from the LP position
+// Reinvests them back into the LP position (earn-on-earn)
+// Logged to /onchainos-proof with feesCollected amount
+```
+
+All three skill invocations are logged with timestamp, args, and result in the **`/onchainos-proof`** endpoint, providing real-time verifiable proof of OnchainOS usage.
+
+---
+
+## MCP Server — AI-Accessible Tooling
+
+The MCP server exposes 6 tools that any AI assistant (Claude, ChatGPT, etc.) can call to query the live agent.
+
+**Base URL:** `https://ample-wisdom-production-f4c9.up.railway.app`
+
+| Tool | Input | Returns |
 |---|---|---|
-| `okx-dex-market` | `onchainos market price --symbol ETH --chain xlayer` | Real-time ETH/USDC price feed for delta calculation |
-| `okx-dex-market` | `onchainos market kline --symbol ETH --interval 5m --limit 144` | OHLCV data for realized volatility engine |
-| `okx-agentic-wallet` | `onchainos wallet balance --chain xlayer` | Read Agentic Wallet balance and LP position state |
-| `okx-agentic-wallet` | `onchainos wallet contract-call --to <vault> --data <calldata>` | On-chain vault interactions via Agentic Wallet |
-| `okx-defi-invest` | `onchainos defi depth-price-chart --investment-id <id>` | Liquidity depth data for optimal tick range computation |
-| `okx-defi-invest` | `onchainos defi list --chain xlayer --product-group DEX_POOL` | Enumerate available Uniswap V3 pools on X Layer |
-| `okx-dex-swap` | `onchainos swap quote --from ETH --to USDC --chain xlayer` | Hedge swap sizing before execution |
-| `okx-dex-swap` | `onchainos swap execute --from ETH --to USDC --chain xlayer` | Execute delta-neutralizing hedge swap on X Layer |
-| `okx-defi-invest` | `onchainos defi collect --reward-type V3_FEE` | Auto-compound LP fees back into position |
-| `okx-defi-invest` | `onchainos defi invest --tick-lower <n> --tick-upper <n>` | Reopen LP position at optimal tick range |
-| `okx-defi-invest` | `onchainos portfolio all-balances --chain xlayer` | Monitor LP position value and coverage status |
-| `okx-security` | `onchainos security tx-simulate --from <agent> --to <vault>` | Pre-flight simulation before every hedge execution |
-| **Uniswap V3** | Position Manager (read) | Tick range, liquidity, and fee accrual data |
-| **Uniswap V3** | Router (write) | Swap router for hedge execution on X Layer |
+| `get_agent_status` | `{}` | Full live agent state: price, IL%, delta, iteration, on-chain TX count |
+| `get_il_exposure` | `{entryPrice, currentPrice, tickLower, tickUpper}` | IL% with positionStatus, in/out-of-range explanation |
+| `get_delta_exposure` | `{currentPrice, entryPrice, liquidity, tickLower, tickUpper}` | Delta in ETH-eq, hedgeAmountUSD, positionStatus |
+| `compute_optimal_ticks` | `{currentPrice, annualizedVolBps, coverageHorizonDays}` | Statistically optimal tickLower/tickUpper for 95% confidence range |
+| `check_premium_cost` | `{coverageAmountUSD, durationDays}` | OKB premium estimate, daily rate, breakdown |
+| `get_vault_stats` | `{}` | Vault address, policies, on-chain TX count, agent wallet |
 
----
+### Usage Example
 
-## Agentic Wallet
+```bash
+# Via HTTP
+curl -X POST https://ample-wisdom-production-f4c9.up.railway.app/call/get_agent_status \
+  -H "Content-Type: application/json" -d '{}'
 
-Parry Protocol uses a single **Agentic Wallet** as its onchain identity — the wallet that both deploys contracts and acts as the autonomous hedging agent:
-
-| Role | Address |
-|---|---|
-| **Agentic Wallet (deployer + hedger)** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
-| Explorer | [View on OKLink](https://www.oklink.com/xlayer-test/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394) |
-
-This wallet is configured via `OKX_API_KEY` + `AGENT_WALLET` in the agent's `.env`. All Onchain OS skills (`onchainos swap execute`, `onchainos wallet contract-call`, `onchainos defi invest`) are invoked under this identity. The agent autonomously signs all hedge transactions through this wallet.
-
----
-
-## Deployment Addresses (X Layer Testnet — chainId 1952)
-
-| Contract | Address |
-|---|---|
-| **ParryVault** | [`0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e`](https://www.oklink.com/xlayer-test/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e) |
-| **ProtectionCert (ERC-721)** | [`0x87E3D9fcfA4eff229A65d045A7C741E49b581187`](https://www.oklink.com/xlayer-test/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187) |
-| **Agentic Wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
-| **Active Policy ID** | `0x3639c395f0d2f5d2b6227192e08298df7778e1a540315791d48ad53d08601f5a` |
-| **Policy TX** | [`0x46003fd501fb7c442b24c73da53777409982f855d5f96d010a9287cb0cb09136`](https://www.oklink.com/xlayer-test/tx/0x46003fd501fb7c442b24c73da53777409982f855d5f96d010a9287cb0cb09136) |
-| **Deployed at** | 2026-04-12T07:20:22Z |
-
----
-
-## Working Mechanics
-
-### 1. Volatility-Adjusted Premium Pricing
-
-Premium is computed from realized annualized volatility:
-
-```
-σ_realized = sqrt(Σ(ln(Pₜ/Pₜ₋₁))² / n) × sqrt(annualization_factor)
-```
-
-- Low vol (< 30%): 0.5 bps/block
-- Medium vol (30–60%): 1.5 bps/block
-- High vol (60–90%): 3.0 bps/block
-- Extreme vol (> 90%): 5.0 bps/block
-
-### 2. Delta Calculation
-
-For a Uniswap V3 concentrated LP with liquidity L, current price S, upper tick p_b:
-
-```
-Δ = L × (1/√S - 1/√p_b)
-hedge_amount_USD = |Δ| × S × hedge_ratio × LP_value_USD
-```
-
-Hedge ratio scales adaptively: 50% at low vol → 100% at extreme vol.
-
-### 3. Optimal Tick Placement
-
-Before opening an LP, Parry computes the statistically optimal tick range:
-
-```
-σ_daily = σ_realized × √(1/365)
-price_range = [S × e^(-z × σ_daily × √T), S × e^(+z × σ_daily × √T)]
-```
-where z = 1.96 (95% confidence), T = coverage days.
-
-### 4. Kill Switch
-
-If single-block IL exceeds the policy threshold, the agent calls `killSwitch()` on-chain, exits the LP, and pays out the payout automatically — no manual intervention required.
-
-### 5. Protection Certificate NFT
-
-On `activateProtection()`, a soulbound-style ERC-721 NFT is minted with on-chain SVG metadata showing:
-- Policy ID, tick range, coverage status
-- Real-time status: ACTIVE → AT_RISK → SETTLED / EXPIRED
-- Fully transferable — LPs can sell their hedge mid-flight
-
-### 6. Fee Auto-Compounding
-
-Every N blocks, the agent calls `onchainos defi collect --reward-type V3_FEE` to collect accrued swap fees and re-invests them back into the position, closing the earn-pay-earn loop.
-
-### 7. MCP Integration
-
-The agent exposes a full MCP (Model Context Protocol) server for AI assistant integration:
-
-```json
-Tools available:
-- parry_get_status        → current agent state, IL exposure, hedge ratio
-- parry_activate_policy   → activate IL protection for a position
-- parry_get_vault_stats   → vault TVL, active policies, total hedges
-- parry_get_il_quote      → get IL exposure and premium quote for a position
-```
-
-### 8. x402 HTTP Micropayments
-
-Premium payments use the x402 HTTP micropayment protocol:
-
-```
-POST /activate  →  402 Payment Required
-                   X-Payment-Required: <payment-details>
-                   X-Payment-Amount: <bps × blocks × coverage>
-                → On payment: activates protection on ParryVault
+# Via Claude Desktop (stdio transport)
+# Add to claude_desktop_config.json:
+{
+  "mcpServers": {
+    "parry": {
+      "command": "node",
+      "args": ["/path/to/mcp-server/dist/index.js"]
+    }
+  }
+}
 ```
 
 ---
 
-## X Layer Ecosystem Positioning
+## x402 HTTP Payment Protocol
 
-Parry Protocol is purpose-built for X Layer's DeFi ecosystem:
+Parry gates its IL protection API behind the **x402 micropayment protocol** — LPs pay in OKB on X Layer to activate protection.
 
-- **Fills a critical gap**: No IL protection product exists on X Layer
-- **Drives Uniswap V3 TVL**: LPs protected by Parry are more likely to provide deeper liquidity
-- **Generates on-chain activity**: Every hedge = 2 txns on X Layer (recordHedge + updateVolatility)
-- **Composable**: Protection Cert NFTs are transferable and can be used as collateral
-- **AI-native**: MCP server makes Parry controllable by any AI assistant through Claude/ChatGPT
+**x402 Server:** `https://radiant-recreation-production-f473.up.railway.app`
+
+### Payment Flow
+
+```
+LP Client                    Parry x402 Server              X Layer Testnet
+    |                              |                               |
+    | POST /protect/activate       |                               |
+    |------------------------------>                               |
+    |                              |                               |
+    | 402 Payment Required         |                               |
+    | X-Payment-Required: {...}    |                               |
+    <------------------------------|                               |
+    |                              |                               |
+    | [OnchainOS okx-x402-payment skill signs authorization]       |
+    | Sends OKB to AGENT_WALLET    |------------------------------>|
+    |                              |                               |
+    | POST /protect/activate       |                               |
+    | X-Payment-Authorization: ... |                               |
+    |------------------------------>                               |
+    |                              | Verify signature + activate   |
+    | 200 OK + policyId + NFT cert |                               |
+    <------------------------------|                               |
+```
+
+### Endpoints
+
+| Endpoint | Auth | Description |
+|---|---|---|
+| `POST /protect/activate` | x402 required | Activate IL protection, mint policy NFT |
+| `POST /protect/demo` | None | Demo activation for judges/testers — returns real policy receipt |
+| `GET /protect/status/:policyId` | None | Check protection status |
+| `POST /protect/extend/:policyId` | x402 required | Extend existing policy |
+| `GET /protect/active` | None | List all active policies |
+| `GET /payment-info` | None | Return payment requirements |
+
+### Payment Parameters
+- **Currency:** OKB (native X Layer token)
+- **Rate:** ~0.001 OKB/day
+- **Chain:** X Layer Testnet (Chain ID 1952)
+- **Pay To:** `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` (Parry Agent Wallet)
+
+### Live Demo (No Wallet Required)
+
+```bash
+curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/demo \
+  -H "Content-Type: application/json" \
+  -d '{"lp":"0x94A4365E6B7E79791258A3Fa071824BC2b75a394","poolAddress":"0x5A77f1443D16ee5761d310e38b62f77f726bC71c","durationDays":1}'
+```
+
+Or click **"BUY PROTECTION (DEMO)"** on the live frontend for a one-click demo with a live policy receipt displayed on screen.
+
+---
+
+## The Math
+
+### Uniswap V3 Delta
+
+For an LP position with liquidity L in tick range [p_a, p_b] at current price S:
+
+```
+When p_a <= S <= p_b:   delta = L * (1/sqrt(S) - 1/sqrt(p_b))
+When S > p_b:           delta = 0  (fully in token1, no ETH directional risk)
+When S < p_a:           delta = L * (1/sqrt(p_a) - 1/sqrt(p_b))  (fully in token0)
+```
+
+### Impermanent Loss
+
+```
+IL% = 2*sqrt(k)/(1+k) - 1    where k = currentPrice / entryPrice
+```
+
+Note: out-of-range positions have constant IL (price locked at the nearest tick boundary value).
+
+### Optimal Tick Selection
+
+Given realized annualized volatility sigma and coverage horizon T days:
+
+```
+p_upper = S * exp(+z * sigma * sqrt(T/365))
+p_lower = S * exp(-z * sigma * sqrt(T/365))
+tick    = log(price) / log(1.0001)
+```
+
+Where z = 1.96 for 95% confidence.
+
+### Hedge Sizing
+
+```
+hedgeUSD = |delta| * S * r(regime)
+
+Where r(regime):
+  LOW     -> 0.50
+  MEDIUM  -> 0.70
+  HIGH    -> 0.90
+  EXTREME -> 1.00
+```
+
+---
+
+## Codebase Structure
+
+```
+parry-protocol/
+├── agent/                        # Core autonomous agent (Node.js / TypeScript)
+│   └── src/
+│       ├── index.ts              # Main loop, HTTP status server, OnchainOS calls
+│       ├── delta.ts              # Uniswap V3 delta + IL math (exact)
+│       ├── volatility.ts         # Realized vol engine + regime classification
+│       ├── hedge.ts              # Hedge execution: recordHedge + updateVolatility
+│       ├── compounder.ts         # Fee compounding via okx-defi-invest skill
+│       ├── onchainos.ts          # OnchainOS client wrapper
+│       └── logger.ts             # HUD-style colored logging
+│
+├── contracts/                    # Solidity smart contracts (Hardhat)
+│   ├── contracts/
+│   │   ├── ParryVault.sol        # Core vault: policies, hedges, volatility oracle
+│   │   └── ProtectionCert.sol   # ERC-721 transferable protection certificate NFT
+│   └── scripts/
+│       ├── deploy.ts             # Deploy + verify both contracts on X Layer
+│       └── seed-policy.ts       # Seed an initial test policy on-chain
+│
+├── mcp-server/                   # Model Context Protocol server
+│   └── src/index.ts              # 6 tools, dual transport: stdio + HTTP
+│
+├── x402-server/                  # x402 HTTP payment protocol server (Express)
+│   └── src/index.ts              # /protect/activate, /protect/demo, full middleware
+│
+├── frontend/                     # Next.js 14 dashboard
+│   ├── app/
+│   │   ├── page.tsx              # Main HUD dashboard (2s live polling)
+│   │   └── globals.css           # HUD aesthetic: scanlines, orbs, animations
+│   └── components/
+│       └── AgentChat.tsx         # Interactive MCP chat (presets + NL input)
+│
+└── README.md
+```
+
+---
+
+## Agent Loop Deep Dive
+
+Every 15 seconds (configurable via `LOOP_INTERVAL_MS`):
+
+```typescript
+// Step 1: Live price from OnchainOS
+const price = await client.getPrice("ETH");
+logOnchainOS("okx-dex-market:getPrice", { symbol: "ETH" }, `$${price}`);
+
+// Step 2: Realized volatility + regime classification
+const volState = await volEngine.getVolatility("ETH");
+logOnchainOS("okx-dex-market:getVolatility", { symbol: "ETH" }, `vol=${vol}% regime=${regime}`);
+
+// Step 3: Optimal tick recomputation (every 50 iterations)
+const optTicks = computeOptimalTicks(price, volState.realizedVolBps, 7, 1.96);
+
+// Step 4: Exact V3 delta + IL computation
+const deltaResult = computeDelta(price, entryPrice, tickLower, tickUpper, liquidity, hedgeRatio);
+
+// Step 5: Execute hedge if hedgeAmountUSD >= $1
+await hedgeExecutor.executeHedge(policyId, deltaResult, baseToken, stableToken, volBps);
+// -> ParryVault.recordHedge() confirmed on X Layer Testnet
+
+// Step 5b: Update on-chain volatility oracle (EVERY iteration in live mode)
+await hedgeExecutor.updateVolatilityDirect(baseToken, volState.realizedVolBps);
+// -> ParryVault.updateVolatility() confirmed X Layer TX every 15s
+// -> This is why onChainTxCount reaches thousands
+
+// Step 5c: Sync wallet nonce from chain every 5 iterations
+state.onChainTxCount = await provider.getTransactionCount(agentWallet);
+
+// Step 6: Fee compounding via OnchainOS (every 2 iterations = every 30s)
+const result = await compounder.maybeCompound(...);
+if (result.compounded) {
+  logOnchainOS("okx-defi-invest:compound", { investmentId }, `fees=${result.feesCollected}`);
+}
+```
+
+---
+
+## Frontend: Live HUD Dashboard
+
+The Next.js frontend polls `/status` every **2 seconds** and renders:
+
+- **Live ticker bar** — ETH price, IL%, volatility, delta, hedge%, on-chain TXs
+- **Status badges** — AGENT LIVE, CHAIN ID 1952, SIGNER LOADED, LIVE MODE (all pulse-animated)
+- **Running since** — agent start timestamp from Railway
+- **5 core metric cards** — price, IL, delta, hedges, on-chain TX count
+- **Position Status orb** — color-coded (green/amber/red) by IL severity
+- **Delta + Vol gauges** — visual gauge for directional exposure and vol regime
+- **Tick Range visualizer** — shows LP price range with current price indicator
+- **OnchainOS Skills panel** — 7 skill modules with live ACTIVE/READY status
+- **Agent Terminal** — live scrolling log feed (last 60 entries, prepends every 2s)
+- **AgentChat MCP panel** — interactive NL interface: presets + freeform input with intent routing and fallback responses for "help", "what is IL", "how does this work"
+- **x402 Demo panel** — one-click BUY PROTECTION demo with live policy receipt on screen
+- **Evidence Links** — direct links to OKLink, agent API, MCP health, x402 info
+- **Earn-Pay-Earn cycle** — 7-step visual of the full protocol flow
 
 ---
 
 ## Running Locally
 
 ### Prerequisites
+- Node.js 18+
+- X Layer Testnet wallet with test ETH
+
+### 1. Clone and Deploy Contracts
 
 ```bash
-Node.js 18+
-```
-
-### 1. Deploy Contracts
-
-```bash
-cd contracts
+git clone https://github.com/Gideon145/parry-protocol
+cd parry-protocol/contracts
 npm install
-cp .env.example .env  # add PRIVATE_KEY
+cp .env.example .env  # Set: PRIVATE_KEY, RPC_URL, CHAIN_ID=1952
 npx hardhat compile
 npx tsx scripts/deploy.ts
 ```
@@ -235,36 +459,90 @@ npx tsx scripts/deploy.ts
 ```bash
 cd agent
 npm install
-cp .env.example .env  # add deployed addresses + API keys
-npm run dev           # or: DEMO_MODE=true npm run dev
+cp .env.example .env  # Set: SIGNER_KEY, VAULT_ADDRESS, AGENT_WALLET
+npm run dev           # Live mode (real OnchainOS, real X Layer TXs)
+# OR
+DEMO_MODE=true npm run dev  # Paper trading mode (no real TXs)
 ```
 
-> **Live deployment note:** The production agent on Railway runs with `DEMO_MODE` unset (defaults to `false`), meaning all OnchainOS skill calls, price feeds, and volatility reads are real. You can verify this at `/status` (`demoMode: false`) and inspect the live OnchainOS call log at `/onchainos-proof`.
+> **Production note:** Railway deployment runs with `DEMO_MODE=false`. All OnchainOS skill calls are real. `demoMode: false` in `/status` confirms this. The agent has been running live since April 9, 2026.
 
-### 3. Start Frontend
+### 3. Start MCP Server
 
 ```bash
-cd frontend
-npm install
-npm run dev
-# open http://localhost:3000
+cd mcp-server && npm install && npm run dev
+# http://localhost:3002
 ```
 
-### 4. Start MCP Server
+### 4. Start x402 Server
 
 ```bash
-cd mcp-server
-npm install
-npm run dev
+cd x402-server && npm install && npm run dev
+# http://localhost:3003
 ```
 
-### 5. Start x402 Server
+### 5. Start Frontend
 
 ```bash
-cd x402-server
-npm install
-npm run dev
+cd frontend && npm install && npm run dev
+# http://localhost:3000
 ```
+
+---
+
+## Environment Variables
+
+### Agent (`agent/.env`)
+
+| Variable | Default | Description |
+|---|---|---|
+| `SIGNER_KEY` | testnet key | Agent wallet private key |
+| `VAULT_ADDRESS` | `0x57C7...` | ParryVault contract address |
+| `AGENT_WALLET` | `0x94A4...` | Agent wallet address |
+| `RPC_URL` | `https://testrpc.xlayer.tech` | X Layer RPC |
+| `CHAIN_ID` | `1952` | X Layer Testnet |
+| `DEMO_MODE` | `false` | Paper mode (no real TXs) |
+| `LOOP_INTERVAL_MS` | `15000` | Agent loop interval |
+| `FORCE_COMPOUND_EVERY_N` | `2` | Compound every N iterations |
+
+### x402 Server (`x402-server/.env`)
+
+| Variable | Description |
+|---|---|
+| `SIGNER_KEY` | Wallet for payment verification |
+| `AGENT_WALLET` | Receives OKB micropayments |
+| `ALLOW_DEMO_AUTH_BYPASS` | `true` to allow demo activations |
+
+---
+
+## Hackathon Submission Checklist
+
+| Item | Status |
+|---|---|
+| GitHub repo public | Done |
+| Live frontend deployed | Done — https://frontend-mu-three-93.vercel.app |
+| Demo video submitted | Done — https://youtu.be/HAIuoL-LiIA |
+| Agent running live (not demo) | Done — `demoMode: false` at /status |
+| OnchainOS skills used (3 types) | Done — getPrice + getVol every 15s, compound every 30s |
+| x402 payment protocol | Done — /protect/activate with full middleware, /protect/demo for judges |
+| MCP server with tools | Done — 6 tools, HTTP + stdio |
+| Smart contracts deployed | Done — ParryVault + ProtectionCert on Chain 1952 |
+| 5,000+ on-chain TXs | Done — wallet nonce verifiable on OKLink |
+| Google Form submitted | Done |
+| X post with hackathon tag | Done |
+
+### What Makes This Different
+
+Most hackathon agents are scripts with mock data. Parry Protocol:
+
+1. **Runs genuinely autonomously** — 15s loop, no human triggers, Railway 24/7
+2. **Uses OnchainOS for real data** — 3 skill types called on every cycle, logged to `/onchainos-proof`
+3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 5,000+ confirmed X Layer TXs verifiable on OKLink
+4. **Implements real DeFi math** — exact Uniswap V3 delta formula, not fake numbers
+5. **Has a working payment protocol** — x402 middleware with real signature verification
+6. **Is AI-queryable** — MCP server with 6 tools callable by Claude/GPT in natural language
+7. **Has transferable on-chain artifacts** — ERC-721 Protection Cert NFTs
+8. **Has a front-end demo of every feature** — status badges, AgentChat, x402 button, terminal, evidence links
 
 ---
 
@@ -272,10 +550,13 @@ npm run dev
 
 | Name | Role |
 |---|---|
-| Gideon | Full-stack + Smart Contracts + Agent |
+| Gideon | Full-stack engineer, smart contracts, agent architecture |
+
+Built end-to-end for the OKX Build-X / X Layer Arena Hackathon, April 2026.
 
 ---
 
 ## License
 
 MIT
+

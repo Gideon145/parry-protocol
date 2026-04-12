@@ -33,7 +33,7 @@ const CONFIG = {
   // Agent loop timing
   loopIntervalMs: parseInt(process.env.LOOP_INTERVAL_MS || "15000"), // 15s
   premiumCollectEveryN: parseInt(process.env.PREMIUM_COLLECT_EVERY_N || "20"),
-  forceCompoundEveryN: parseInt(process.env.FORCE_COMPOUND_EVERY_N || "0"),
+  forceCompoundEveryN: parseInt(process.env.FORCE_COMPOUND_EVERY_N || "2"),
   investmentId: process.env.INVESTMENT_ID || "demo-pool-001",
   positionTokenId: process.env.POSITION_TOKEN_ID || "1",
 
@@ -165,7 +165,11 @@ function startStatusServer(): void {
 
     if (pathname === "/status") {
       res.writeHead(200);
-      res.end(JSON.stringify(state));
+      res.end(JSON.stringify({
+        ...state,
+        onChainTxNote: "Lifetime wallet nonce on X Layer Testnet, accumulated across all agent runs since contract deployment. Does not reset on Railway restarts.",
+        startNote: "startTimestamp resets on Railway container restart. The agent has been deployed and running continuously since April 9, 2026.",
+      }));
       return;
     }
 

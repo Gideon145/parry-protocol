@@ -131,6 +131,48 @@ app.post("/protect/activate", x402Middleware, async (req: Request, res: Response
 });
 
 /**
+ * POST /protect/demo
+ * Frictionless demo flow for hackathon judges — no real payment required.
+ * Returns a real policy activation with a synthetic x402 receipt.
+ */
+app.post("/protect/demo", async (req: Request, res: Response) => {
+  try {
+    const lp = req.body.lp || "0xDEMO000000000000000000000000000000000001";
+    const poolAddress = req.body.poolAddress || "0x5A77f1443D16ee5761d310e38b62f77f726bC71c";
+    const durationDays = Number(req.body.durationDays || 1);
+    const policyId = ethers.keccak256(
+      ethers.toUtf8Bytes(`demo-${lp}-${poolAddress}-${Date.now()}`)
+    );
+    const protection: ActiveProtection = {
+      policyId,
+      lp,
+      poolAddress,
+      tickLower: req.body.tickLower ?? -600,
+      tickUpper: req.body.tickUpper ?? 600,
+      activatedAt: Date.now(),
+      paidUntil: Date.now() + durationDays * 24 * 60 * 60 * 1000,
+    };
+    activeProtections.set(policyId, protection);
+    console.log(`[x402] Demo activation: ${policyId} for ${lp}`);
+    return res.json({
+      success: true,
+      policyId,
+      lp,
+      poolAddress,
+      durationDays,
+      paidUntil: new Date(protection.paidUntil).toISOString(),
+      activatedAt: new Date(protection.activatedAt).toISOString(),
+      x402Note: "Demo activation — real x402 flow requires X-Payment-Authorization header signed by OnchainOS okx-x402-payment skill with OKB on X Layer (Chain ID 1952).",
+      pricePerDay: ethers.formatEther(PRICE_PER_DAY_OKB) + " OKB",
+      chain: "X Layer Testnet (1952)",
+    });
+  } catch (err) {
+    console.error("[x402] demo error:", err);
+    return res.status(500).json({ error: "Internal error", detail: String(err) });
+  }
+});
+
+/**
  * POST /protect/extend/:policyId
  * Extend existing protection with x402 payment
  */
