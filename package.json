@@ -1,0 +1,12 @@
+{
+  "name": "parry-protocol",
+  "version": "1.0.0",
+  "description": "Parry Protocol - Delta-Neutral LP Protection Agent on X Layer",
+  "scripts": {
+    "build": "cd agent && npm install && npm run build",
+    "start": "cd agent && npm start"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
