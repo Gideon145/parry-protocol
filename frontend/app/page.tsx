@@ -502,64 +502,133 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* ── Prominent status panel ──────────────────────────────── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+            {/* Row 1: main connection badge — big and blinking */}
+            <div
+              className={connected ? "status-badge-green" : "status-badge-amber"}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 20px",
+                border: `2px solid ${connected ? "var(--green)" : "var(--amber)"}`,
+                borderRadius: 4,
+                background: connected ? "rgba(0,255,136,0.08)" : "rgba(255,149,0,0.08)",
+              }}
+            >
               <div
                 style={{
-                  width: 8,
-                  height: 8,
+                  width: 12,
+                  height: 12,
                   borderRadius: "50%",
-                  background: connected ? "var(--green)" : "var(--red)",
-                  boxShadow: connected
-                    ? "0 0 8px var(--green)"
-                    : "0 0 8px var(--red)",
+                  background: connected ? "var(--green)" : "var(--amber)",
+                  boxShadow: connected ? "0 0 12px var(--green)" : "0 0 12px var(--amber)",
+                  flexShrink: 0,
+                  animation: connected ? "orb-pulse-green 1.5s ease-in-out infinite" : "orb-pulse-amber 1.2s ease-in-out infinite",
                 }}
               />
               <span
+                className="status-text-blink"
                 style={{
-                  fontSize: 12,
-                  color: connected ? "var(--green)" : "var(--text-dim)",
+                  fontFamily: "var(--font-orbitron), sans-serif",
+                  fontSize: 18,
+                  fontWeight: 800,
+                  letterSpacing: "0.14em",
+                  color: connected ? "var(--green)" : "var(--amber)",
+                }}
+              >
+                {connected ? "▸ AGENT LIVE" : "▸ DEMO MODE"}
+              </span>
+            </div>
+
+            {/* Row 2: chain ID + signer + demo flags */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {/* CHAIN ID */}
+              <div
+                className="status-badge-cyan"
+                style={{
+                  padding: "6px 14px",
+                  border: "1px solid var(--cyan)",
+                  borderRadius: 3,
+                  background: "rgba(0,212,255,0.07)",
                   fontFamily: "var(--font-hud), monospace",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "var(--cyan)",
                   letterSpacing: "0.1em",
                 }}
               >
-                {connected ? "AGENT CONNECTED" : "DEMO MODE"}
-              </span>
+                CHAIN ID {status.chainId ?? 1952}
+              </div>
+
+              {/* SIGNER */}
+              <div
+                className={status.signerLoaded !== false ? "status-badge-green" : "status-badge-amber"}
+                style={{
+                  padding: "6px 14px",
+                  border: `1px solid ${status.signerLoaded !== false ? "var(--green)" : "var(--amber)"}`,
+                  borderRadius: 3,
+                  background: status.signerLoaded !== false ? "rgba(0,255,136,0.07)" : "rgba(255,149,0,0.07)",
+                  fontFamily: "var(--font-hud), monospace",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: status.signerLoaded !== false ? "var(--green)" : "var(--amber)",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                SIGNER {status.signerLoaded !== false ? "✓ LOADED" : "✗ MISSING"}
+              </div>
+
+              {/* DEMO MODE flag */}
+              <div
+                className={!status.demoMode ? "status-badge-green" : "status-badge-amber"}
+                style={{
+                  padding: "6px 14px",
+                  border: `1px solid ${!status.demoMode ? "var(--green)" : "var(--amber)"}`,
+                  borderRadius: 3,
+                  background: !status.demoMode ? "rgba(0,255,136,0.07)" : "rgba(255,149,0,0.07)",
+                  fontFamily: "var(--font-hud), monospace",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: !status.demoMode ? "var(--green)" : "var(--amber)",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {!status.demoMode ? "LIVE MODE ✓" : "DEMO MODE"}
+              </div>
+            </div>
+
+            {/* Row 3: running-since + last sync */}
+            <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "flex-end" }}>
               {status.startTimestamp && (
                 <span
                   style={{
-                    fontSize: 10,
-                    color: "var(--text-faint)",
                     fontFamily: "var(--font-hud), monospace",
-                    letterSpacing: "0.05em",
-                    marginLeft: 8,
+                    fontSize: 12,
+                    color: "var(--cyan)",
+                    letterSpacing: "0.08em",
+                    fontWeight: 600,
                   }}
                 >
-                  RUNNING SINCE{" "}
+                  ⏱ RUNNING SINCE{" "}
                   {new Date(status.startTimestamp).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
+                    year: "numeric",
                   }).toUpperCase()}
                 </span>
               )}
-            </div>
-            <div
-              style={{
-                fontSize: 13,
-                color: "var(--text-dim)",
-                fontFamily: "var(--font-hud), monospace",
-                textAlign: "right",
-              }}
-            >
-              <div>X LAYER TESTNET</div>
-              <div style={{ color: "var(--text-faint)", marginTop: 2 }}>
-                {status.vaultAddress !== "0xVault..."
-                  ? `${status.vaultAddress.slice(0, 10)}...`
-                  : "Deploy vault first"}
-              </div>
-              <div style={{ color: "var(--cyan)", marginTop: 4, fontSize: 12 }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-hud), monospace",
+                  fontSize: 11,
+                  color: "var(--text-dim)",
+                  letterSpacing: "0.08em",
+                }}
+              >
                 LAST SYNC: {lastUpdated}
-              </div>
+              </span>
             </div>
           </div>
         </header>
