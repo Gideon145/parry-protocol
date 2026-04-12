@@ -385,29 +385,6 @@ server.connect(transport).then(() => {
   console.error("PARRY MCP Server running (stdio)");
 });
 
-// Lightweight health endpoint so Railway can monitor this service.
-const healthServer = http.createServer((req, res) => {
-  if (req.url === "/health") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ ok: true, service: "PARRY-mcp-server" }));
-    return;
-  }
-
-  if (req.url === "/") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({
-      ok: true,
-      service: "PARRY-mcp-server",
-      transport: "stdio",
-      note: "MCP tools are exposed over stdio; use /health for uptime checks.",
-    }));
-    return;
-  }
-
-  res.writeHead(404, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ error: "not found" }));
-});
-
 const candidatePorts = Array.from(
   new Set([
     PORT,
@@ -418,13 +395,32 @@ const candidatePorts = Array.from(
 
 for (const p of candidatePorts) {
   try {
-    const s = healthServer.listen(p, () => {
+    const s = http.createServer((req, res) => {
+      if (req.url === "/health") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true, service: "PARRY-mcp-server", port: p }));
+        return;
+      }
+
+      if (req.url === "/") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          ok: true,
+          service: "PARRY-mcp-server",
+          transport: "stdio",
+          port: p,
+        }));
+        return;
+      }
+
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "not found" }));
+    }).listen(p, () => {
       console.error(`PARRY MCP health server listening on :${p}`);
     });
     s.on("error", () => {
       // Ignore bind collisions and keep trying other ports.
     });
-    break;
   } catch {
     // Try next candidate port.
   }
