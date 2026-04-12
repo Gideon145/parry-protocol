@@ -58,39 +58,19 @@ export function computeILPercent(
   // Normalized price ratio
   const r = s / s0;
 
-  // IL formula for concentrated liquidity (Dv3):
-  // IL = 2√r / (1+r) - 1  (standard V2)
-  // For V3 we apply range adjustment factor k where:
-  // k = (√s - √pa) / (√pb - √pa) clamped to [0,1]
+  // IL formula: 2√r/(1+r) - 1
+  // This is the standard V2/V3 IL formula. For V3 concentrated positions the
+  // IL is amplified relative to V2 — a position concentrated into ±5% range
+  // experiences IL at ~20x the rate of a full-range position. We apply a
+  // concentration multiplier based on the tick range width.
+  const rangeWidth = pb - pa; // in price units
+  const midPrice = (pa + pb) / 2;
+  // Concentration factor: full range (pa→∞) ≈ 1x, tight concentrated ≈ up to ~20x
+  // Approximated as: 1 / rangeWidth * midPrice, clamped to [1, 20]
+  const concentrationFactor = Math.min(20, Math.max(1, midPrice / Math.max(rangeWidth, 0.0001)));
+  const ilBase = 2 * Math.sqrt(r) / (1 + r) - 1;
 
-  let ilStandard: number;
-
-  if (s < pa) {
-    // Price below range — all token1. IL relative to entry.
-    const kEntry = Math.max(0, Math.min(1, (Math.sqrt(s0) - Math.sqrt(pa)) / (Math.sqrt(pb) - Math.sqrt(pa))));
-    if (kEntry === 0) {
-      // Entry was also below range
-      ilStandard = 0;
-    } else {
-      // Value of position = constant token1 = L(√pb - √pa) in token1 terms
-      // Value of hold at s = x0·s + y0
-      // Approximation: use standard V2 IL formula scaled by range
-      ilStandard = (2 * Math.sqrt(r) / (1 + r) - 1) * kEntry;
-    }
-  } else if (s > pb) {
-    // Price above range — all token0
-    const kEntry = Math.max(0, Math.min(1, (Math.sqrt(s0) - Math.sqrt(pa)) / (Math.sqrt(pb) - Math.sqrt(pa))));
-    if (kEntry === 1) {
-      ilStandard = 0;
-    } else {
-      ilStandard = (2 * Math.sqrt(r) / (1 + r) - 1) * (1 - kEntry);
-    }
-  } else {
-    // Standard V2 IL formula (V3 in-range approximation)
-    ilStandard = 2 * Math.sqrt(r) / (1 + r) - 1;
-  }
-
-  return Math.abs(ilStandard) * 100; // return as positive percentage
+  return Math.abs(ilBase) * concentrationFactor * 100; // return as positive percentage
 }
 
 /**

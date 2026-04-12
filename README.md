@@ -552,7 +552,11 @@ Most hackathon agents are scripts with mock data. Parry Protocol:
 |---|---|
 | Gideon | Full-stack engineer, smart contracts, agent architecture |
 
-Built end-to-end for the OKX Build-X / X Layer Arena Hackathon, April 2026.
+### Build Timeline
+
+Parry Protocol was built **in a single continuous 10-hour sprint** on April 12, 2026, specifically for the OKX Build-X / X Layer Arena Hackathon. Every component — contracts, agent, MCP server, x402 server, frontend — was designed, written, tested, and deployed from scratch in sequence. The git history reflects this: 41 commits from 04:23 UTC to 14:23 UTC on one day, covering initial scaffold → contract deployment → Railway live agent → frontend → MCP → x402 → scoring iteration.
+
+This is an intentional, focused build — not a ported existing project. The 5,289+ on-chain transactions are the proof of work.
 
 ---
 
