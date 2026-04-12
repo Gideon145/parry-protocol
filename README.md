@@ -239,6 +239,8 @@ cp .env.example .env  # add deployed addresses + API keys
 npm run dev           # or: DEMO_MODE=true npm run dev
 ```
 
+> **Live deployment note:** The production agent on Railway runs with `DEMO_MODE` unset (defaults to `false`), meaning all OnchainOS skill calls, price feeds, and volatility reads are real. You can verify this at `/status` (`demoMode: false`) and inspect the live OnchainOS call log at `/onchainos-proof`.
+
 ### 3. Start Frontend
 
 ```bash

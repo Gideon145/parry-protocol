@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 628px;
+    overflow: hidden;
+    background: #040e1c;
+    font-family: 'Courier New', monospace;
+  }
+
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .glow-left {
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,180,255,0.1) 0%, transparent 65%);
+    top: -200px; left: -150px;
+  }
+  .glow-right {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,255,150,0.07) 0%, transparent 65%);
+    bottom: -150px; right: -50px;
+  }
+
+  .layout {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    height: 100%;
+  }
+
+  .vline {
+    width: 1px;
+    background: linear-gradient(to bottom, transparent 5%, rgba(0,200,255,0.2) 30%, rgba(0,200,255,0.2) 70%, transparent 95%);
+    margin: 0 auto;
+  }
+
+  /* LEFT PANEL */
+  .left {
+    padding: 44px 48px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .project-tag {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: rgba(0,200,255,0.6);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.0;
+    text-transform: uppercase;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: #00c8ff; text-shadow: 0 0 30px rgba(0,200,255,0.5); }
+
+  .tagline {
+    margin-top: 12px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.5;
+  }
+
+  .big-stat {
+    margin-top: 28px;
+  }
+  .big-stat .num {
+    font-size: 52px;
+    font-weight: 900;
+    color: #00ffa3;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 30px rgba(0,255,163,0.4);
+    line-height: 1;
+  }
+  .big-stat .lbl {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .bottom-row {
+    display: flex;
+    gap: 28px;
+    margin-top: 24px;
+  }
+  .mini-stat .val {
+    font-size: 22px;
+    font-weight: 700;
+    color: #00c8ff;
+  }
+  .mini-stat .lbl {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.25);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* RIGHT PANEL */
+  .right {
+    padding: 36px 44px 36px 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: rgba(0,200,255,0.5);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .integration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .int-card {
+    background: rgba(0,200,255,0.04);
+    border: 1px solid rgba(0,200,255,0.12);
+    border-radius: 4px;
+    padding: 10px 14px;
+  }
+  .int-card .name {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .int-card .desc {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .int-card.green { border-color: rgba(0,255,163,0.2); }
+  .int-card.green .name { color: #00ffa3; }
+  .int-card.cyan { border-color: rgba(0,200,255,0.25); }
+  .int-card.cyan .name { color: #00c8ff; }
+  .int-card.yellow { border-color: rgba(240,192,64,0.2); }
+  .int-card.yellow .name { color: #f0c040; }
+
+  .hline {
+    height: 1px;
+    background: linear-gradient(to right, rgba(0,200,255,0.15), transparent);
+    margin: 2px 0;
+  }
+
+  .stack-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .pill {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .live-strip {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.25);
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #00ffa3;
+    box-shadow: 0 0 10px #00ffa3;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow-left"></div>
+  <div class="glow-right"></div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div class="left">
+      <div>
+        <div class="project-tag">OKX Build-X Hackathon 2026</div>
+        <h1>PARRY<br><span>PROTOCOL</span></h1>
+        <div class="tagline">Autonomous Uniswap V3<br>Impermanent Loss Hedging</div>
+      </div>
+
+      <div>
+        <div class="big-stat">
+          <div class="num">3,287+</div>
+          <div class="lbl">Confirmed On-Chain TXs</div>
+        </div>
+
+        <div class="bottom-row">
+          <div class="mini-stat">
+            <div class="val">X Layer</div>
+            <div class="lbl">Testnet</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val">15s</div>
+            <div class="lbl">Hedge Interval</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val">x402</div>
+            <div class="lbl">Paywall API</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val">MCP</div>
+            <div class="lbl">AI Callable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vline"></div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <div>
+        <div class="section-label">What We Built</div>
+        <div class="integration-grid">
+          <div class="int-card green">
+            <div class="name">OnchainOS</div>
+            <div class="desc">12 skills — live price feed, volatility engine, fee compounder</div>
+          </div>
+          <div class="int-card cyan">
+            <div class="name">x402 Paywall</div>
+            <div class="desc">Hedge API charges OKB per call — agent actually earns</div>
+          </div>
+          <div class="int-card cyan">
+            <div class="name">MCP Server</div>
+            <div class="desc">6 HTTP-callable tools for AI agent interoperability</div>
+          </div>
+          <div class="int-card yellow">
+            <div class="name">Smart Contracts</div>
+            <div class="desc">ParryVault + ProtectionCert deployed on X Layer Testnet</div>
+          </div>
+          <div class="int-card green">
+            <div class="name">Autonomous Agent</div>
+            <div class="desc">Runs on Railway — no human trigger, computes delta every 15s</div>
+          </div>
+          <div class="int-card">
+            <div class="name">Next.js Frontend</div>
+            <div class="desc">Live terminal, metrics, evidence links — Vercel deployed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hline"></div>
+
+      <div>
+        <div class="section-label">Stack</div>
+        <div class="stack-row">
+          <div class="pill">TypeScript</div>
+          <div class="pill">Ethers v6</div>
+          <div class="pill">Hardhat</div>
+          <div class="pill">X Layer Testnet</div>
+          <div class="pill">Railway</div>
+          <div class="pill">Vercel</div>
+          <div class="pill">Express</div>
+          <div class="pill">MCP SDK</div>
+        </div>
+      </div>
+
+      <div class="live-strip">
+        <div class="live-dot"></div>
+        Agent running live — github.com/Gideon145/parry-protocol
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -8,6 +8,7 @@ import { TerminalLog } from "@/components/TerminalLog";
 import { MetricCard } from "@/components/MetricCard";
 import { VolatilityBar } from "@/components/VolatilityBar";
 import { TickRangeVisual } from "@/components/TickRangeVisual";
+import { AgentChat } from "@/components/AgentChat";
 
 export interface AgentStatus {
   running: boolean;
@@ -867,6 +868,10 @@ export default function Home() {
                 href: `${statusApiUrl}/status`,
               },
               {
+                label: "OnchainOS Proof",
+                href: `${statusApiUrl}/onchainos-proof`,
+              },
+              {
                 label: "MCP Health",
                 href: "https://ample-wisdom-production-f4c9.up.railway.app/health",
               },
@@ -912,6 +917,11 @@ export default function Home() {
             </div>
             <TerminalLog logs={displayLogs} />
           </div>
+        </div>
+
+        {/* ── MCP Interactive Console ────────────────────────────── */}
+        <div className="animate-in" style={{ marginBottom: 16 }}>
+          <AgentChat />
         </div>
 
         {/* ── Row 4: Earn-pay-earn cycle ──────────────────────────── */}

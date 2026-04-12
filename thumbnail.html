@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: #050d1a;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Animated grid background */
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Glow blobs */
+  .blob1 {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,180,255,0.12) 0%, transparent 70%);
+    top: -150px; left: -100px;
+  }
+  .blob2 {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,255,180,0.08) 0%, transparent 70%);
+    bottom: -100px; right: 50px;
+  }
+
+  .content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 80px;
+    padding: 0 80px;
+    width: 100%;
+  }
+
+  .left {
+    flex: 1;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: #00c8ff;
+    border: 1px solid rgba(0,200,255,0.4);
+    padding: 5px 14px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 span {
+    color: #00c8ff;
+    text-shadow: 0 0 40px rgba(0,200,255,0.6);
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 16px;
+    margin-bottom: 36px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 32px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-val {
+    font-size: 28px;
+    font-weight: 700;
+    color: #00ffa3;
+    text-shadow: 0 0 20px rgba(0,255,163,0.5);
+    letter-spacing: 0.05em;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .right {
+    width: 380px;
+    flex-shrink: 0;
+  }
+
+  .terminal {
+    background: rgba(0,200,255,0.04);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .term-bar {
+    background: rgba(0,200,255,0.08);
+    padding: 8px 14px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: rgba(0,200,255,0.6);
+    border-bottom: 1px solid rgba(0,200,255,0.1);
+    text-transform: uppercase;
+  }
+
+  .term-body {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .line {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .line .dim { color: rgba(255,255,255,0.25); }
+  .line .grn { color: #00ffa3; }
+  .line .cyn { color: #00c8ff; }
+  .line .wht { color: rgba(255,255,255,0.7); }
+  .line .ylw { color: #f0c040; }
+
+  .divider {
+    width: 1px;
+    height: 200px;
+    background: linear-gradient(to bottom, transparent, rgba(0,200,255,0.3), transparent);
+    flex-shrink: 0;
+  }
+
+  .badge {
+    position: absolute;
+    bottom: 36px;
+    right: 80px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    z-index: 10;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #00ffa3;
+    box-shadow: 0 0 8px #00ffa3;
+  }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="blob1"></div>
+  <div class="blob2"></div>
+
+  <div class="content">
+    <div class="left">
+      <div class="tag">OKX Build-X Hackathon 2026</div>
+      <h1>PARRY<br><span>PROTOCOL</span></h1>
+      <div class="subtitle">Autonomous IL Hedging on X Layer</div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-val">3,287+</div>
+          <div class="stat-label">On-Chain TXs</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">x402</div>
+          <div class="stat-label">Paywall API</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">MCP</div>
+          <div class="stat-label">AI Agent Tools</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="right">
+      <div class="terminal">
+        <div class="term-bar">PARRY-AGENT — LIVE</div>
+        <div class="term-body">
+          <div class="line"><span class="dim">[14:17:27]</span> <span class="wht">Price: <span class="cyn">$2190.89</span></span></div>
+          <div class="line"><span class="dim">[14:17:27]</span> <span class="wht">IL: <span class="grn">0.00%</span> | Hedge: <span class="ylw">$92.03</span></span></div>
+          <div class="line"><span class="dim">[14:17:10]</span> <span class="grn">[HEDGE] tx confirmed</span></div>
+          <div class="line"><span class="dim">[14:17:03]</span> <span class="wht">Vol: <span class="ylw">33.8% σ</span> MEDIUM</span></div>
+          <div class="line"><span class="dim">[14:16:46]</span> <span class="grn">[VOL-UPDATE] on-chain</span></div>
+          <div class="line"><span class="dim">[14:16:31]</span> <span class="wht">Delta: <span class="cyn">0.0420 ETH-eq</span></span></div>
+          <div class="line"><span class="dim">[14:16:16]</span> <span class="grn">[HEDGE] tx confirmed</span></div>
+          <div class="line"><span class="dim">[14:16:01]</span> <span class="wht">nonce=<span class="ylw">3287</span> confirmed txns</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="badge">
+    <div class="badge-dot"></div>
+    X Layer Testnet — Chain ID 1952
+  </div>
+</body>
+</html>

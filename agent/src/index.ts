@@ -58,6 +58,24 @@ let _demoPrice = 2000;
 let _demoIteration = 0;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// OnchainOS call proof log
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface OnchainOSCall {
+  ts: string;
+  skill: string;
+  args: Record<string, unknown>;
+  result: string;
+}
+
+const onchainOSLog: OnchainOSCall[] = [];
+
+function logOnchainOS(skill: string, args: Record<string, unknown>, result: string): void {
+  onchainOSLog.unshift({ ts: new Date().toISOString(), skill, args, result });
+  if (onchainOSLog.length > 50) onchainOSLog.pop();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Agent State (broadcast to frontend via HTTP)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -155,6 +173,16 @@ function startStatusServer(): void {
       return;
     }
 
+    if (pathname === "/onchainos-proof") {
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        description: "Live proof of OnchainOS skill invocations by the Parry agent",
+        totalCalls: onchainOSLog.length,
+        calls: onchainOSLog.slice(0, 20),
+      }));
+      return;
+    }
+
     res.writeHead(404);
     res.end(JSON.stringify({ error: "not found" }));
   });
@@ -228,6 +256,7 @@ async function main(): Promise<void> {
       } else {
         const price = await client.getPrice(CONFIG.baseSymbol);
         currentPrice = price || _demoPrice;
+        if (price) logOnchainOS("okx-dex-market:getPrice", { symbol: CONFIG.baseSymbol }, `$${price.toFixed(2)}`);
       }
 
       state.currentPrice = currentPrice;
@@ -242,6 +271,10 @@ async function main(): Promise<void> {
             sampleCount: 144,
           }
         : await volEngine.getVolatility(CONFIG.baseSymbol);
+
+      if (!CONFIG.demoMode) {
+        logOnchainOS("okx-dex-market:getVolatility", { symbol: CONFIG.baseSymbol }, `vol=${(volState.realizedVolBps/100).toFixed(1)}% regime=${volState.regime}`);
+      }
 
       state.volBps = volState.realizedVolBps;
       state.volRegime = volState.regime;
@@ -359,6 +392,7 @@ async function main(): Promise<void> {
           );
           if (result.compounded) {
             state.totalFeesCompounded++;
+            logOnchainOS("okx-defi-invest:compound", { investmentId: demoPolicy.investmentId }, `fees=${result.feesCollected}`);
             addLog(`[COMPOUND] Fees collected: ${result.feesCollected}`);
           } else if (forceCompound) {
             addLog(`[COMPOUND] Forced attempt executed (no reinvest this cycle)`);
