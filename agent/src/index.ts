@@ -77,6 +77,8 @@ interface AgentStatus {
   policies: string[];
   vaultAddress: string;
   agentWallet: string;
+  demoMode: boolean;
+  chainId: number;
   logs: string[];
 }
 
@@ -101,6 +103,8 @@ const state: AgentStatus = {
   policies: [],
   vaultAddress: CONFIG.vaultAddress,
   agentWallet: CONFIG.agentWallet,
+  demoMode: CONFIG.demoMode,
+  chainId: CONFIG.chainId,
   logs: [],
 };
 
