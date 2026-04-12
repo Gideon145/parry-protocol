@@ -42,7 +42,7 @@ export function TerminalLog({ logs }: Props) {
         border: "1px solid var(--border)",
         borderRadius: 3,
         padding: "12px 14px",
-        height: 480px,
+        height: 480,
         overflowY: "auto",
         fontFamily: "var(--font-hud), 'Courier New', monospace",
         fontSize: 13,
