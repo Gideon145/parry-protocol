@@ -3,7 +3,7 @@ import * as fs from "fs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
-const ParryVaultArtifact   = require("../artifacts/contracts/InsuranceVault.sol/ParryVault.json");
+const ParryVaultArtifact   = require("../artifacts/contracts/ParryVault.sol/ParryVault.json");
 const ProtectionCertArtifact = require("../artifacts/contracts/ProtectionCert.sol/ProtectionCert.json");
 
 const RPC_URL    = "https://testrpc.xlayer.tech";

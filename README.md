@@ -33,8 +33,8 @@ Parry Protocol's autonomous agent:
 │                                                             │
 │  ┌──────────────┐  ┌────────────────┐  ┌────────────────┐  │
 │  │VolatilityEng │  │ DeltaCalc      │  │ FeeCompounder  │  │
-│  │CoinGecko API │  │ Tick math      │  │ Auto-reinvest  │  │
-│  │Realized vol  │  │ IL % + hedgeΔ  │  │ fees → LP      │  │
+│  │Onchain OS    │  │ Tick math      │  │ Auto-reinvest  │  │
+│  │market skill  │  │ IL % + hedgeΔ  │  │ fees → LP      │  │
 │  └──────┬───────┘  └───────┬────────┘  └────────────────┘  │
 │         │                  │                                 │
 │  ┌──────▼──────────────────▼────────────────────────────┐   │
@@ -79,17 +79,35 @@ Parry Protocol's autonomous agent:
 
 ## Onchain OS & Uniswap Skills Used
 
-| Skill | Usage |
+| Module | Skill | Usage |
+|---|---|---|
+| `okx-dex-market` | `onchainos market price --symbol ETH --chain xlayer` | Real-time ETH/USDC price feed for delta calculation |
+| `okx-dex-market` | `onchainos market kline --symbol ETH --interval 5m --limit 144` | OHLCV data for realized volatility engine |
+| `okx-agentic-wallet` | `onchainos wallet balance --chain xlayer` | Read Agentic Wallet balance and LP position state |
+| `okx-agentic-wallet` | `onchainos wallet contract-call --to <vault> --data <calldata>` | On-chain vault interactions via Agentic Wallet |
+| `okx-defi-invest` | `onchainos defi depth-price-chart --investment-id <id>` | Liquidity depth data for optimal tick range computation |
+| `okx-defi-invest` | `onchainos defi list --chain xlayer --product-group DEX_POOL` | Enumerate available Uniswap V3 pools on X Layer |
+| `okx-dex-swap` | `onchainos swap quote --from ETH --to USDC --chain xlayer` | Hedge swap sizing before execution |
+| `okx-dex-swap` | `onchainos swap execute --from ETH --to USDC --chain xlayer` | Execute delta-neutralizing hedge swap on X Layer |
+| `okx-defi-invest` | `onchainos defi collect --reward-type V3_FEE` | Auto-compound LP fees back into position |
+| `okx-defi-invest` | `onchainos defi invest --tick-lower <n> --tick-upper <n>` | Reopen LP position at optimal tick range |
+| `okx-defi-invest` | `onchainos portfolio all-balances --chain xlayer` | Monitor LP position value and coverage status |
+| `okx-security` | `onchainos security tx-simulate --from <agent> --to <vault>` | Pre-flight simulation before every hedge execution |
+| **Uniswap V3** | Position Manager (read) | Tick range, liquidity, and fee accrual data |
+| **Uniswap V3** | Router (write) | Swap router for hedge execution on X Layer |
+
+---
+
+## Agentic Wallet
+
+Parry Protocol uses a single **Agentic Wallet** as its onchain identity — the wallet that both deploys contracts and acts as the autonomous hedging agent:
+
+| Role | Address |
 |---|---|
-| `onchainos market price` | Real-time ETH/USDC price for delta calc |
-| `onchainos market kline` | OHLCV data for realized volatility computation |
-| `onchainos wallet balance` | Read LP position state and coverage status |
-| `onchainos defi depth-price-chart` | Optimal tick range calculation |
-| `onchainos swap quote` | Hedge swap sizing before execution |
-| `onchainos swap execute` | Execute delta-neutralizing hedge swap on X Layer |
-| `onchainos defi collect --reward-type V3_FEE` | Auto-compound LP fees back into position |
-| **Uniswap V3 Position Manager** | Read tick range, liquidity, and fee accrual |
-| **Uniswap V3 Router** | Swap router for hedge execution |
+| **Agentic Wallet (deployer + hedger)** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
+| Explorer | [View on OKLink](https://www.oklink.com/xlayer-test/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394) |
+
+This wallet is configured via `OKX_API_KEY` + `AGENT_WALLET` in the agent's `.env`. All Onchain OS skills (`onchainos swap execute`, `onchainos wallet contract-call`, `onchainos defi invest`) are invoked under this identity. The agent autonomously signs all hedge transactions through this wallet.
 
 ---
 
@@ -99,7 +117,9 @@ Parry Protocol's autonomous agent:
 |---|---|
 | **ParryVault** | [`0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e`](https://www.oklink.com/xlayer-test/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e) |
 | **ProtectionCert (ERC-721)** | [`0x87E3D9fcfA4eff229A65d045A7C741E49b581187`](https://www.oklink.com/xlayer-test/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187) |
-| **Deployer / Agent Wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
+| **Agentic Wallet** | `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` |
+| **Active Policy ID** | `0x3639c395f0d2f5d2b6227192e08298df7778e1a540315791d48ad53d08601f5a` |
+| **Policy TX** | [`0x46003fd501fb7c442b24c73da53777409982f855d5f96d010a9287cb0cb09136`](https://www.oklink.com/xlayer-test/tx/0x46003fd501fb7c442b24c73da53777409982f855d5f96d010a9287cb0cb09136) |
 | **Deployed at** | 2026-04-12T07:20:22Z |
 
 ---
