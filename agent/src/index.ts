@@ -85,6 +85,7 @@ interface AgentStatus {
   demoMode: boolean;
   chainId: number;
   signerLoaded: boolean;
+  onChainTxCount: number;
   logs: string[];
 }
 
@@ -112,6 +113,7 @@ const state: AgentStatus = {
   demoMode: CONFIG.demoMode,
   chainId: CONFIG.chainId,
   signerLoaded: CONFIG.privateKey.length > 10,
+  onChainTxCount: 0,
   logs: [],
 };
 
@@ -304,10 +306,10 @@ async function main(): Promise<void> {
 
           if (result.success) {
             state.totalHedgesTx++;
-            state.lastHedgeTx = result.txHash || "";
-            state.lastActivity = `Hedge: $${result.hedgeAmountUSD.toFixed(2)} tx=${result.txHash?.slice(0, 10)}`;
-            addLog(`[HEDGE] tx=${result.txHash}`);
-            logger.success(`Hedge tx: ${result.txHash}`);
+            if (result.txHash) state.lastHedgeTx = result.txHash;
+            state.lastActivity = `Hedge: $${result.hedgeAmountUSD.toFixed(2)}${result.txHash ? ` tx=${result.txHash.slice(0, 12)}` : ""}`;
+            addLog(`[HEDGE] tx=${result.txHash || "(pending on-chain)"}`);
+            logger.success(`Hedge tx: ${result.txHash || "(recorded, no swap hash)"}`);
           }
         }
       }
@@ -319,13 +321,21 @@ async function main(): Promise<void> {
           CONFIG.baseToken,          // use WETH address as pool key
           volState.realizedVolBps
         );
-        if (volTxHash && !state.lastHedgeTx) {
-          state.lastHedgeTx = volTxHash;
-        }
         if (volTxHash) {
+          state.lastHedgeTx = volTxHash;
           state.totalHedgesTx++;
-          addLog(`[VOL-UPDATE] vol=${voltStr(volState.realizedVolBps)} tx=${volTxHash.slice(0, 12)}`);
+          addLog(`[VOL-UPDATE] vol=${voltStr(volState.realizedVolBps)} tx=${volTxHash.slice(0, 14)}`);
         }
+      }
+
+      // ── Step 5c: Sync on-chain TX count from wallet nonce (every 5 iters) ──
+      if (!CONFIG.demoMode && iteration % 5 === 0) {
+        try {
+          const provider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
+          const nonce = await provider.getTransactionCount(CONFIG.agentWallet);
+          state.onChainTxCount = nonce;
+          if (nonce > 0) addLog(`[ON-CHAIN] wallet nonce=${nonce} (≈${nonce} confirmed txns)`);
+        } catch { /* non-critical */ }
       }
 
       // ── Step 6: Fee compounding ────────────────────────────────────────────

@@ -152,52 +152,31 @@ export class HedgeExecutor {
     }
 
     // ── Record hedge on-chain via Onchain OS gateway ────────────────────────
-    // broadcastViaGateway: sign locally → route through onchainos gateway broadcast
-    // so every recordHedge txn carries an Onchain OS API fingerprint.
+    // ── Record hedge on-chain (direct ethers — reliable nonce management) ──
     try {
       const hedgeRatioBps = Math.round(
         (delta.delta > 0 ? delta.hedgeAmountUSD / (delta.delta * delta.currentPrice) : 0) * 10000
       );
-      const encodedRecord = await this.vault.recordHedge.populateTransaction(
+      const recordTx = await this.vault.recordHedge(
         policyId,
         ethers.parseUnits(deltaAmount.toFixed(18), 18),
         ethers.parseUnits(hedgeAmountUSD.toFixed(6), 6),
         hedgeRatioBps
       );
-      const recordHash = await this.broadcastViaGateway(encodedRecord);
-      if (recordHash) {
-        await this.provider.waitForTransaction(recordHash);
-        if (!txHash) txHash = recordHash; // use recordHedge hash as the reported txHash when swap hash is unavailable
-        logger.info(`[HedgeExecutor] ✓ recordHedge via Onchain OS gateway: ${recordHash}`);
-      } else {
-        // Fallback: direct ethers.js submission
-        const recordTx = await this.vault.recordHedge(
-          policyId,
-          ethers.parseUnits(deltaAmount.toFixed(18), 18),
-          ethers.parseUnits(hedgeAmountUSD.toFixed(6), 6),
-          hedgeRatioBps
-        );
-        await recordTx.wait();
-        if (!txHash) txHash = recordTx.hash;
-        logger.info(`[HedgeExecutor] Hedge recorded on-chain (direct): ${recordTx.hash}`);
-      }
+      await recordTx.wait();
+      if (!txHash) txHash = recordTx.hash;
+      logger.info(`[HedgeExecutor] ✓ recordHedge on-chain: ${recordTx.hash}`);
     } catch (e) {
       logger.warn(`[HedgeExecutor] On-chain record failed (non-critical): ${e}`);
     }
 
-    // ── Update on-chain volatility via Onchain OS gateway ──────────────────
+    // ── Update on-chain volatility (direct ethers) ─────────────────────────
     try {
       const poolAddress = await this._getPolicyPool(policyId);
       if (poolAddress) {
-        const encodedVol = await this.vault.updateVolatility.populateTransaction(poolAddress, volBps);
-        const volHash = await this.broadcastViaGateway(encodedVol);
-        if (volHash) {
-          logger.debug(`[HedgeExecutor] ✓ updateVolatility via Onchain OS gateway: ${volBps} bps → ${volHash}`);
-        } else {
-          const volTx = await this.vault.updateVolatility(poolAddress, volBps);
-          await volTx.wait();
-          logger.debug(`[HedgeExecutor] Volatility updated on-chain (direct): ${volBps} bps`);
-        }
+        const volTx = await this.vault.updateVolatility(poolAddress, volBps);
+        await volTx.wait();
+        logger.debug(`[HedgeExecutor] ✓ updateVolatility on-chain: ${volBps} bps → ${volTx.hash}`);
       }
     } catch (e) {
       logger.warn(`[HedgeExecutor] Volatility update failed (non-critical): ${e}`);
@@ -287,17 +266,11 @@ export class HedgeExecutor {
    */
   async updateVolatilityDirect(pool: string, volBps: number): Promise<string | null> {
     try {
-      const encodedTx = await this.vault.updateVolatility.populateTransaction(pool, volBps);
-      const hash = await this.broadcastViaGateway(encodedTx);
-      if (hash) {
-        logger.info(`[HedgeExecutor] ✓ On-chain vol via Onchain OS gateway: ${volBps} bps → ${hash}`);
-        return hash;
-      }
-      // Fallback: direct ethers.js
+      // Direct ethers.js — reliable nonce management, no conflict with gateway
       const tx = await this.vault.updateVolatility(pool, volBps);
       await tx.wait();
-      logger.info(`[HedgeExecutor] On-chain vol update (direct): ${volBps} bps → ${tx.hash}`);
-      return (tx as { hash: string }).hash;
+      logger.info(`[HedgeExecutor] ✓ updateVolatility on-chain: ${volBps} bps → ${tx.hash}`);
+      return tx.hash;
     } catch (e) {
       logger.warn(`[HedgeExecutor] On-chain vol update failed: ${e}`);
       return null;
