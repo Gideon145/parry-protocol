@@ -26,24 +26,27 @@ function colorLine(line: string): { text: string; color: string } {
 }
 
 export function TerminalLog({ logs }: Props) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, [logs]);
 
   return (
     <div
+      ref={containerRef}
       style={{
         background: "rgba(0,0,0,0.6)",
         border: "1px solid var(--border)",
         borderRadius: 3,
         padding: "12px 14px",
-        height: 260,
+        height: 300,
         overflowY: "auto",
         fontFamily: "var(--font-hud), 'Courier New', monospace",
-        fontSize: 11,
-        lineHeight: 1.9,
+        fontSize: 13,
+        lineHeight: 2,
       }}
     >
       {logs.length === 0 && (
@@ -59,7 +62,6 @@ export function TerminalLog({ logs }: Props) {
           </div>
         );
       })}
-      <div ref={bottomRef} />
     </div>
   );
 }

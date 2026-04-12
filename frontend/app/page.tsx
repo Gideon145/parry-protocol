@@ -34,6 +34,10 @@ export interface AgentStatus {
 }
 
 const AGENT_URL = process.env.NEXT_PUBLIC_AGENT_URL || "http://localhost:3001";
+const FALLBACK_AGENT_URL = "https://parry-protocol-production.up.railway.app";
+const FALLBACK_WALLET = "0x94A4365E6B7E79791258A3Fa071824BC2b75a394";
+const FALLBACK_VAULT = "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e";
+const OKLINK_BASE = "https://oklink.com/x-layer-testnet";
 
 const MOCK_STATUS: AgentStatus = {
   running: true,
@@ -144,6 +148,12 @@ export default function Home() {
 
   const vol = (status.volBps / 100).toFixed(1);
   const hedgePct = (status.hedgeRatio * 100).toFixed(0);
+  const validAddress = (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value);
+  const validTxHash = (value: string) => /^0x[a-fA-F0-9]{64}$/.test(value);
+  const walletAddress = validAddress(status.agentWallet) ? status.agentWallet : FALLBACK_WALLET;
+  const vaultAddress = validAddress(status.vaultAddress) ? status.vaultAddress : FALLBACK_VAULT;
+  const txHash = validTxHash(status.lastHedgeTx) ? status.lastHedgeTx : "";
+  const statusApiUrl = AGENT_URL.startsWith("http") ? AGENT_URL : FALLBACK_AGENT_URL;
 
   return (
     <main
@@ -172,35 +182,35 @@ export default function Home() {
             whiteSpace: "nowrap",
           }}
         >
-          <span title="Current ETH/USDC exchange rate">
+          <span>
             ETH/USDC{" "}
             <span style={{ color: "var(--cyan)" }}>
               ${status.currentPrice.toFixed(2)}
             </span>
           </span>
-          <span title="Impermanent Loss: the gap between current and entry prices">
+          <span>
             IL{" "}
             <span style={{ color: ilColor }}>
               {status.ilPercent.toFixed(3)}%
             </span>
           </span>
-          <span title="Volatility in basis points (64 bps = 0.64%)">
+          <span>
             σ{" "}
             <span style={{ color: "var(--purple)" }}>
               {vol}% [{status.volRegime}]
             </span>
           </span>
-          <span title="Delta exposure: how much unhedged risk remains">
+          <span>
             Δ{" "}
             <span style={{ color: "var(--cyan)" }}>
               {status.deltaExposure.toFixed(4)}
             </span>
           </span>
-          <span title="Current hedge ratio protecting position">
+          <span>
             HEDGE{" "}
             <span style={{ color: "var(--green)" }}>{hedgePct}%</span>
           </span>
-          <span title="Total hedge/vol transactions executed by agent">
+          <span>
             TXS{" "}
             <span style={{ color: "var(--amber)" }}>
               {status.totalHedgesTx}
@@ -231,7 +241,7 @@ export default function Home() {
         >
           <div
             style={{
-              fontSize: 22,
+              fontSize: 34,
               fontWeight: 600,
               color: "var(--cyan)",
               letterSpacing: "0.08em",
@@ -242,7 +252,7 @@ export default function Home() {
           </div>
           <div
             style={{
-              fontSize: 17,
+              fontSize: 21,
               lineHeight: 1.6,
               color: "var(--text-bright)",
               marginBottom: 12,
@@ -255,7 +265,7 @@ export default function Home() {
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: 16,
-              fontSize: 15,
+              fontSize: 18,
               color: "var(--text-dim)",
               lineHeight: 1.5,
             }}
@@ -331,7 +341,7 @@ export default function Home() {
                   letterSpacing: "0.1em",
                 }}
               >
-                {connected ? "AGENT LIVE" : "DEMO MODE"}
+                LIVE DEMO TEST
               </span>
             </div>
             <div
@@ -455,7 +465,6 @@ export default function Home() {
                 </div>
                 <div
                   style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 6 }}
-                  title={status.inRange ? "Position is generating fees" : "Position is out of range"}
                 >
                   {status.inRange
                     ? "In range - fees accruing"
@@ -491,8 +500,8 @@ export default function Home() {
                   color: "var(--cyan)",
                   tooltip: "Most recent hedge transaction hash on-chain",
                 },
-              ].map(({ label, value, color, tooltip }) => (
-                <div key={label} className="data-row" title={tooltip} style={{ cursor: "help" }}>
+              ].map(({ label, value, color }) => (
+                <div key={label} className="data-row">
                   <span className="data-label" style={{ fontSize: 11 }}>{label}</span>
                   <span
                     className="data-value"
@@ -568,9 +577,7 @@ export default function Home() {
                     background: "rgba(255,255,255,0.02)",
                     borderRadius: 2,
                     border: "1px solid var(--border)",
-                    cursor: "help",
                   }}
-                  title={mod.tooltip}
                 >
                   <span
                     style={{
@@ -650,25 +657,21 @@ export default function Home() {
             {[
               {
                 label: "Last Hedge TX",
-                href: status.lastHedgeTx && status.lastHedgeTx.startsWith("0x")
-                  ? `https://www.oklink.com/xlayer-test/tx/${status.lastHedgeTx}`
-                  : "https://www.oklink.com/xlayer-test",
+                href: txHash
+                  ? `${OKLINK_BASE}/tx/${txHash}`
+                  : `${OKLINK_BASE}/address/${walletAddress}`,
               },
               {
                 label: "Agent Wallet Explorer",
-                href: status.agentWallet && status.agentWallet.startsWith("0x")
-                  ? `https://www.oklink.com/xlayer-test/address/${status.agentWallet}`
-                  : "https://www.oklink.com/xlayer-test",
+                href: `${OKLINK_BASE}/address/${walletAddress}`,
               },
               {
                 label: "Vault Contract",
-                href: status.vaultAddress && status.vaultAddress.startsWith("0x")
-                  ? `https://www.oklink.com/xlayer-test/address/${status.vaultAddress}`
-                  : "https://www.oklink.com/xlayer-test",
+                href: `${OKLINK_BASE}/address/${vaultAddress}`,
               },
               {
                 label: "Agent Status API",
-                href: `${AGENT_URL}/status`,
+                href: `${statusApiUrl}/status`,
               },
               {
                 label: "MCP Health",
@@ -682,10 +685,7 @@ export default function Home() {
               <a
                 key={item.label}
                 href={item.href}
-                target="_blank"
-                rel="noreferrer"
                 className="evidence-btn"
-                title={`Open ${item.label}`}
               >
                 {item.label}
               </a>
@@ -703,10 +703,10 @@ export default function Home() {
             marginBottom: 16,
           }}
         >
-          <div className="card-hud hover-card p-5">
+          <div className="card-hud hover-card terminal-panel p-5">
             <div
               style={{
-                fontSize: 12,
+                fontSize: 14,
                 color: "var(--text-dim)",
                 letterSpacing: "0.15em",
                 marginBottom: 12,
@@ -717,10 +717,13 @@ export default function Home() {
               <span>AGENT TERMINAL</span>
               <span
                 className="cursor-blink"
-                style={{ color: "var(--green)", fontSize: 11 }}
+                style={{ color: "var(--green)", fontSize: 13 }}
               >
                 RUNNING
               </span>
+            </div>
+            <div className="terminal-watch">
+              Watching live price feed, IL drift, delta risk, hedge sizing, and fee compounding signals every 2 seconds.
             </div>
             <TerminalLog logs={status.logs} />
           </div>
@@ -788,7 +791,7 @@ export default function Home() {
                   color: "var(--amber)",
                   tooltip: "If IL > threshold, LP can claim insurance payout",
                 },
-              ].map(({ step, label, sub, color, tooltip }, i) => (
+              ].map(({ step, label, sub, color }, i) => (
                 <div
                   key={step}
                   style={{
@@ -798,9 +801,7 @@ export default function Home() {
                     padding: "8px 0",
                     borderBottom:
                       i < 6 ? "1px solid var(--border)" : "none",
-                    cursor: "help",
                   }}
-                  title={tooltip}
                 >
                   <span
                     style={{

@@ -124,7 +124,7 @@ html, body {
   color: var(--text-primary);
   text-decoration: none;
   font-family: var(--font-hud), monospace;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 0.03em;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
@@ -134,6 +134,19 @@ html, body {
   border-color: var(--cyan);
   background: linear-gradient(180deg, rgba(0, 212, 255, 0.16), rgba(0, 212, 255, 0.06));
   box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
+}
+
+.terminal-watch {
+  margin-bottom: 12px;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+  transition: color 0.18s ease, font-weight 0.18s ease;
+}
+
+.terminal-panel:hover .terminal-watch {
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .animate-in {
