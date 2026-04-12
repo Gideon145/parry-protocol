@@ -1,4 +1,5 @@
 import "dotenv/config";
+import * as http from "http";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -8,9 +9,9 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
-import { computeDelta, computeOptimalTicks, computeILPercent } from "./delta.js";
 
 const AGENT_STATUS_URL = process.env.AGENT_STATUS_URL || "http://localhost:3001";
+const PORT = parseInt(process.env.PORT || "3003", 10);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MCP Server — Parry Protocol Tools
@@ -287,7 +288,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 totalHedgesExecuted: s.totalHedgesTx,
                 totalFeesCompounded: s.totalFeesCompounded,
                 lastHedgeTx: s.lastHedgeTx,
-                network: "X Layer Testnet (Chain ID 195)",
+                network: "X Layer Testnet (Chain ID 1952)",
               }, null, 2),
             }],
           };
@@ -382,4 +383,31 @@ function computeOptimalTicks(currentPrice: number, annualizedVolBps: number, cov
 const transport = new StdioServerTransport();
 server.connect(transport).then(() => {
   console.error("PARRY MCP Server running (stdio)");
+});
+
+// Lightweight health endpoint so Railway can monitor this service.
+const healthServer = http.createServer((req, res) => {
+  if (req.url === "/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok: true, service: "PARRY-mcp-server" }));
+    return;
+  }
+
+  if (req.url === "/") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      ok: true,
+      service: "PARRY-mcp-server",
+      transport: "stdio",
+      note: "MCP tools are exposed over stdio; use /health for uptime checks.",
+    }));
+    return;
+  }
+
+  res.writeHead(404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ error: "not found" }));
+});
+
+healthServer.listen(PORT, () => {
+  console.error(`PARRY MCP health server listening on :${PORT}`);
 });

@@ -172,7 +172,7 @@ app.get("/payment-info", (_req: Request, res: Response) => {
   return res.json({
     scheme: "x402",
     network: "xlayer",
-    chainId: parseInt(process.env.CHAIN_ID || "195"),
+    chainId: parseInt(process.env.CHAIN_ID || "1952"),
     payTo: AGENT_WALLET,
     currency: "OKB",
     pricePerDay: ethers.formatEther(PRICE_PER_DAY_OKB),
@@ -206,7 +206,7 @@ function x402Middleware(req: Request, res: Response, next: NextFunction): void {
       version: "1.0",
       scheme: "x402",
       network: "xlayer",
-      chainId: parseInt(process.env.CHAIN_ID || "195"),
+      chainId: parseInt(process.env.CHAIN_ID || "1952"),
       payTo: AGENT_WALLET,
       amount: ethers.formatEther(PRICE_PER_DAY_OKB),
       currency: "OKB",
@@ -257,7 +257,7 @@ app.listen(PORT, () => {
 ║   PARRY x402 Payment Server          ║
 ║   Port: ${PORT}                          ║
 ║   Pay-per-block IL Protection         ║
-║   Network: X Layer (Chain ${process.env.CHAIN_ID || "195"})      ║
+║   Network: X Layer (Chain ${process.env.CHAIN_ID || "1952"})      ║
 ╚═══════════════════════════════════════╝
   `);
   console.log(`[x402] Payment endpoint: POST http://localhost:${PORT}/protect/activate`);
