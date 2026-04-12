@@ -2,32 +2,82 @@
 import { useState } from "react";
 
 const MCP_URL = "https://ample-wisdom-production-f4c9.up.railway.app";
+const AGENT_URL = "https://parry-protocol-production.up.railway.app";
 
-const PRESETS = [
+interface AgentStatusSnapshot {
+  currentPrice: number;
+  entryPrice: number;
+  tickLower: number;
+  tickUpper: number;
+  volBps: number;
+  hedgeRatio: number;
+}
+
+async function fetchAgentSnapshot(): Promise<AgentStatusSnapshot | null> {
+  try {
+    const res = await fetch(`${AGENT_URL}/status`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return {
+      currentPrice: d.currentPrice ?? 2187,
+      entryPrice: d.entryPrice ?? 2000,
+      tickLower: d.tickLower ?? -600,
+      tickUpper: d.tickUpper ?? 600,
+      volBps: d.volBps ?? 5000,
+      hedgeRatio: d.hedgeRatio ?? 0.7,
+    };
+  } catch {
+    return null;
+  }
+}
+
+type PresetDef = {
+  label: string;
+  tool: string;
+  buildArgs: (snap: AgentStatusSnapshot | null) => Record<string, unknown>;
+};
+
+const PRESETS: PresetDef[] = [
   {
     label: "What is the current IL exposure?",
     tool: "get_il_exposure",
-    args: { symbol: "ETH" },
+    buildArgs: (s) => ({
+      entryPrice: s?.entryPrice ?? 2000,
+      currentPrice: s?.currentPrice ?? 2187,
+      tickLower: s?.tickLower ?? -600,
+      tickUpper: s?.tickUpper ?? 600,
+    }),
   },
   {
     label: "Show delta exposure",
     tool: "get_delta_exposure",
-    args: { symbol: "ETH" },
+    buildArgs: (s) => ({
+      currentPrice: s?.currentPrice ?? 2187,
+      entryPrice: s?.entryPrice ?? 2000,
+      tickLower: s?.tickLower ?? -600,
+      tickUpper: s?.tickUpper ?? 600,
+      hedgeRatio: s?.hedgeRatio ?? 0.7,
+    }),
   },
   {
     label: "What are the optimal tick ranges?",
     tool: "compute_optimal_ticks",
-    args: { symbol: "ETH", days: 7 },
+    buildArgs: (s) => ({
+      currentPrice: s?.currentPrice ?? 2187,
+      annualizedVolBps: s?.volBps ?? 5000,
+      coverageHorizonDays: 7,
+      confidenceLevel: 1.96,
+    }),
   },
   {
     label: "Get live agent status",
     tool: "get_agent_status",
-    args: {},
+    buildArgs: () => ({}),
   },
   {
-    label: "Check ETH volatility regime",
-    tool: "get_volatility",
-    args: { symbol: "ETH" },
+    label: "Estimate protection premium",
+    tool: "check_premium_cost",
+    buildArgs: () => ({ coverageAmountUSD: 1000, durationDays: 7 }),
   },
 ];
 
@@ -38,18 +88,18 @@ export function AgentChat() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const callTool = async (
-    tool: string,
-    args: Record<string, unknown>,
-    label: string
-  ) => {
+  const callPreset = async (preset: PresetDef) => {
     setLoading(true);
-    setActiveLabel(label);
-    setActiveTool(tool);
+    setActiveLabel(preset.label);
+    setActiveTool(preset.tool);
     setError(null);
     setResult(null);
     try {
-      const res = await fetch(`${MCP_URL}/call/${tool}`, {
+      // Fetch live snapshot first so computation tools get real values
+      const snap = await fetchAgentSnapshot();
+      const args = preset.buildArgs(snap);
+
+      const res = await fetch(`${MCP_URL}/call/${preset.tool}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(args),
@@ -108,7 +158,7 @@ export function AgentChat() {
           return (
             <button
               key={p.tool}
-              onClick={() => callTool(p.tool, p.args, p.label)}
+              onClick={() => callPreset(p)}
               disabled={loading}
               style={{
                 padding: "9px 16px",
