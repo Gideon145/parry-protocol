@@ -523,9 +523,7 @@ export default function Home() {
                   height: 12,
                   borderRadius: "50%",
                   background: connected ? "var(--green)" : "var(--amber)",
-                  boxShadow: connected ? "0 0 12px var(--green)" : "0 0 12px var(--amber)",
                   flexShrink: 0,
-                  animation: connected ? "orb-pulse-green 1.5s ease-in-out infinite" : "orb-pulse-amber 1.2s ease-in-out infinite",
                 }}
               />
               <span

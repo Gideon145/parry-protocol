@@ -439,31 +439,31 @@ html, body {
 .dot-3 { animation: dot-flash 1.4s ease-in-out 0.4s infinite; }
 
 /* -- Status badge animations ----------------------------------------------- */
-@keyframes status-glow-green {
-  0%, 100% { box-shadow: 0 0 8px rgba(0,255,136,0.5), inset 0 0 8px rgba(0,255,136,0.1); opacity: 1; }
-  50% { box-shadow: 0 0 20px rgba(0,255,136,0.9), 0 0 40px rgba(0,255,136,0.4), inset 0 0 12px rgba(0,255,136,0.2); opacity: 0.85; }
+@keyframes status-fade-green {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
 }
-@keyframes status-glow-amber {
-  0%, 100% { box-shadow: 0 0 8px rgba(255,149,0,0.5), inset 0 0 8px rgba(255,149,0,0.1); opacity: 1; }
-  50% { box-shadow: 0 0 20px rgba(255,149,0,0.9), 0 0 40px rgba(255,149,0,0.4), inset 0 0 12px rgba(255,149,0,0.2); opacity: 0.85; }
+@keyframes status-fade-amber {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
 }
-@keyframes status-glow-cyan {
-  0%, 100% { box-shadow: 0 0 8px rgba(0,212,255,0.4), inset 0 0 6px rgba(0,212,255,0.08); }
-  50% { box-shadow: 0 0 18px rgba(0,212,255,0.8), 0 0 32px rgba(0,212,255,0.3), inset 0 0 10px rgba(0,212,255,0.15); }
+@keyframes status-fade-cyan {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
 }
 @keyframes status-text-blink {
-  0%, 100% { opacity: 1; text-shadow: 0 0 10px currentColor; }
-  45% { opacity: 0.6; text-shadow: none; }
-  55% { opacity: 0.6; text-shadow: none; }
+  0%, 100% { opacity: 1; }
+  45% { opacity: 0.55; }
+  55% { opacity: 0.55; }
 }
 .status-badge-green {
-  animation: status-glow-green 1.8s ease-in-out infinite;
+  animation: status-fade-green 1.8s ease-in-out infinite;
 }
 .status-badge-amber {
-  animation: status-glow-amber 1.4s ease-in-out infinite;
+  animation: status-fade-amber 1.4s ease-in-out infinite;
 }
 .status-badge-cyan {
-  animation: status-glow-cyan 2.2s ease-in-out infinite;
+  animation: status-fade-cyan 2.2s ease-in-out infinite;
 }
 .status-text-blink {
   animation: status-text-blink 2s ease-in-out infinite;
