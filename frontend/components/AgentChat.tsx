@@ -81,12 +81,24 @@ const PRESETS: PresetDef[] = [
   },
 ];
 
+function resolveIntent(query: string): PresetDef | null {
+  const q = query.toLowerCase();
+  if (/il|impermanent|loss/.test(q)) return PRESETS[0];
+  if (/delta|exposure|hedge amount/.test(q)) return PRESETS[1];
+  if (/tick|range|optimal|rebalance/.test(q)) return PRESETS[2];
+  if (/status|agent|running|iteration|price/.test(q)) return PRESETS[3];
+  if (/premium|cost|protect|fee|cover/.test(q)) return PRESETS[4];
+  return null;
+}
+
 export function AgentChat() {
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState("");
+  const [noMatch, setNoMatch] = useState(false);
 
   const callPreset = async (preset: PresetDef) => {
     setLoading(true);
@@ -112,6 +124,20 @@ export function AgentChat() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+    setNoMatch(false);
+    const preset = resolveIntent(trimmed);
+    if (!preset) {
+      setNoMatch(true);
+      return;
+    }
+    setInputValue("");
+    await callPreset({ ...preset, label: trimmed });
   };
 
   return (
@@ -143,13 +169,57 @@ export function AgentChat() {
         style={{
           fontSize: 12,
           color: "var(--text-dim)",
-          marginBottom: 18,
+          marginBottom: 14,
           lineHeight: 1.5,
         }}
       >
-        Click any question to invoke the live MCP tool endpoint in real-time.
-        Each call goes directly to the running agent — no mock data.
+        Type a question or click a preset — each call invokes the live MCP tool endpoint directly. No mock data.
       </div>
+
+      {/* Freeform input */}
+      <form onSubmit={handleSubmit} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => { setInputValue(e.target.value); setNoMatch(false); }}
+          placeholder="e.g. what is my IL? / show delta / optimal ticks / agent status"
+          disabled={loading}
+          style={{
+            flex: 1,
+            padding: "10px 14px",
+            fontSize: 13,
+            fontFamily: "var(--font-hud), monospace",
+            background: "rgba(0,0,0,0.45)",
+            border: `1px solid ${noMatch ? "rgba(255,100,100,0.5)" : "var(--border-glow)"}`,
+            borderRadius: 3,
+            color: "var(--text-primary)",
+            outline: "none",
+          }}
+        />
+        <button
+          type="submit"
+          disabled={loading || !inputValue.trim()}
+          style={{
+            padding: "10px 20px",
+            fontSize: 12,
+            fontFamily: "var(--font-hud), monospace",
+            letterSpacing: "0.08em",
+            border: "1px solid var(--cyan)",
+            background: "rgba(0,212,255,0.1)",
+            color: "var(--cyan)",
+            borderRadius: 3,
+            cursor: loading ? "wait" : "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          ASK ▸
+        </button>
+      </form>
+      {noMatch && (
+        <div style={{ fontSize: 11, color: "rgba(255,150,100,0.9)", marginBottom: 10, fontFamily: "var(--font-hud), monospace" }}>
+          ✗ Not recognized — try: "IL", "delta", "ticks", "status", or "premium"
+        </div>
+      )}
 
       {/* Preset buttons */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>

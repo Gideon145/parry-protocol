@@ -158,22 +158,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { entryPrice, currentPrice, tickLower, tickUpper } = args as Record<string, number>;
         const il = computeILPercent(entryPrice, currentPrice, tickLower, tickUpper);
         const priceRatio = currentPrice / entryPrice;
+        const priceLower = Math.pow(1.0001, tickLower);
+        const priceUpper = Math.pow(1.0001, tickUpper);
+        const outOfRange = currentPrice < priceLower || currentPrice > priceUpper;
+        const priceDriftPct = Math.abs((currentPrice - entryPrice) / entryPrice * 100).toFixed(2);
+        const payload: Record<string, unknown> = {
+          ilPercent: `${il.toFixed(4)}%`,
+          priceRatio: priceRatio.toFixed(4),
+          entryPrice: `$${entryPrice}`,
+          currentPrice: `$${currentPrice}`,
+          priceDrift: `${priceDriftPct}% from entry`,
+          direction: currentPrice > entryPrice ? "price increased" : "price decreased",
+        };
+        if (outOfRange) {
+          payload.positionStatus = "OUT OF RANGE";
+          payload.note = `Position tick range [$${priceLower.toFixed(0)}–$${priceUpper.toFixed(0)}] does not include current price $${currentPrice.toFixed(2)}. Price has diverged ${priceDriftPct}% from entry. IL is fully realized on the out-of-range side — the position holds 100% of the appreciating asset with no further fee accrual.`;
+          payload.recommendation = "Rebalance position ticks to re-enter range, or activate PARRY protection to offset realized IL.";
+        } else {
+          payload.positionStatus = "IN RANGE";
+          payload.summary = `Your LP position has experienced ${il.toFixed(2)}% impermanent loss. ${
+            il < 2 ? "Low IL — within normal range." :
+            il < 5 ? "Moderate IL — consider activating PARRY protection." :
+            "Significant IL — PARRY protection strongly recommended."
+          }`;
+        }
         return {
-          content: [{
-            type: "text",
-            text: JSON.stringify({
-              ilPercent: `${il.toFixed(4)}%`,
-              priceRatio: priceRatio.toFixed(4),
-              entryPrice: `$${entryPrice}`,
-              currentPrice: `$${currentPrice}`,
-              direction: currentPrice > entryPrice ? "price increased" : "price decreased",
-              summary: `Your LP position has experienced ${il.toFixed(2)}% impermanent loss. ${
-                il < 2 ? "Low IL — within normal range." :
-                il < 5 ? "Moderate IL — consider activating PARRY protection." :
-                "Significant IL — PARRY protection strongly recommended."
-              }`,
-            }, null, 2),
-          }],
+          content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
         };
       }
 
@@ -196,6 +206,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               hedgeAmountUSD: `$${result.hedgeAmountUSD.toFixed(2)}`,
               ilPercent: `${result.ilPercent.toFixed(3)}%`,
               inRange: result.inRange,
+              positionStatus: result.inRange ? "IN RANGE — fees accruing" : "OUT OF RANGE — price outside tick bounds, no fees, hedge covers divergence",
               priceRange: `$${result.priceLower.toFixed(2)} - $${result.priceUpper.toFixed(2)}`,
               action: result.hedgeAmountUSD > 1
                 ? `Sell $${result.hedgeAmountUSD.toFixed(2)} of the risky asset to achieve delta neutrality`
