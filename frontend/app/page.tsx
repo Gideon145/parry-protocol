@@ -86,6 +86,7 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<string>("--");
   const [introIdx, setIntroIdx] = useState(0);
   const [bottomIdx, setBottomIdx] = useState(0);
+  const [displayLogs, setDisplayLogs] = useState<string[]>(MOCK_STATUS.logs);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -94,10 +95,13 @@ export default function Home() {
         cache: "no-store",
       });
       if (res.ok) {
-        const data = await res.json();
+        const data: AgentStatus = await res.json();
         setStatus(data);
         setConnected(true);
         setLastUpdated(new Date().toLocaleTimeString());
+        // Synthesize a live heartbeat line on every poll so terminal always scrolls
+        const heartbeat = `[${new Date().toLocaleTimeString()}] Price: $${(data.currentPrice ?? 0).toFixed(2)} | IL: ${(data.ilPercent ?? 0).toFixed(3)}% | Δ: ${(data.deltaExposure ?? 0).toFixed(4)} | iter: ${data.iteration}`;
+        setDisplayLogs((prev) => [heartbeat, ...(data.logs ?? []), ...prev].slice(0, 60));
       } else {
         setConnected(false);
       }
@@ -124,6 +128,8 @@ export default function Home() {
 
         const liveLog = `[${new Date().toLocaleTimeString()}] DEMO FEED | Price: $${nextPrice} | IL: ${nextIl}% | Δ: ${nextDelta} | Hedge: $${nextHedgeUsd}`;
 
+        setDisplayLogs((prev) => [liveLog, ...prev].slice(0, 60));
+
         return {
           ...prev,
           iteration: prev.iteration + 1,
@@ -132,7 +138,6 @@ export default function Home() {
           deltaExposure: nextDelta,
           hedgeAmountUSD: nextHedgeUsd,
           lastActivity: `Demo refresh @ $${nextPrice}`,
-          logs: [liveLog, ...prev.logs].slice(0, 8),
         };
       });
       setLastUpdated(new Date().toLocaleTimeString());
@@ -898,7 +903,7 @@ export default function Home() {
             <div className="terminal-watch">
               Watching live price feed, IL drift, delta risk, hedge sizing, and fee compounding signals every 2 seconds.
             </div>
-            <TerminalLog logs={status.logs} />
+            <TerminalLog logs={displayLogs} />
           </div>
         </div>
 
