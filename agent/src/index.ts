@@ -16,11 +16,11 @@ const CONFIG = {
   rpcUrl: process.env.RPC_URL || "https://testrpc.xlayer.tech",
   chainId: parseInt(process.env.CHAIN_ID || "1952"),
   privateKey: process.env.PRIVATE_KEY || "",
-  vaultAddress: process.env.VAULT_ADDRESS || "",
-  agentWallet: process.env.AGENT_WALLET || "",
+  vaultAddress: process.env.VAULT_ADDRESS || "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e",
+  agentWallet: process.env.AGENT_WALLET || "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
 
   // Policy ID for on-chain recordHedge (set by seed-policy script)
-  policyId: process.env.POLICY_ID || ("0x" + "a".repeat(64)),
+  policyId: process.env.POLICY_ID || "0x3639c395f0d2f5d2b6227192e08298df7778e1a540315791d48ad53d08601f5a",
 
   // Symbols (X Layer token symbols for onchainos market)
   baseSymbol: process.env.BASE_SYMBOL || "ETH",
