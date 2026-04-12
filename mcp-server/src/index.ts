@@ -408,6 +408,24 @@ const healthServer = http.createServer((req, res) => {
   res.end(JSON.stringify({ error: "not found" }));
 });
 
-healthServer.listen(PORT, () => {
-  console.error(`PARRY MCP health server listening on :${PORT}`);
-});
+const candidatePorts = Array.from(
+  new Set([
+    PORT,
+    3003,
+    8080,
+  ])
+);
+
+for (const p of candidatePorts) {
+  try {
+    const s = healthServer.listen(p, () => {
+      console.error(`PARRY MCP health server listening on :${p}`);
+    });
+    s.on("error", () => {
+      // Ignore bind collisions and keep trying other ports.
+    });
+    break;
+  } catch {
+    // Try next candidate port.
+  }
+}
