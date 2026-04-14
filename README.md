@@ -58,7 +58,7 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 | OnchainOS Proof | https://parry-protocol-production.up.railway.app/onchainos-proof | Live |
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
 | x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
-| Agent Wallet (OKLink) | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | 5,000+ TXs |
+| Agent Wallet (OKLink) | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | 28,000+ TXs |
 | ParryVault Contract | https://oklink.com/x-layer-testnet/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | Deployed |
 | ProtectionCert NFT | https://oklink.com/x-layer-testnet/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | Deployed |
 | Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
@@ -68,7 +68,7 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 ```bash
 # Agent running in LIVE mode (not demo)
 curl https://parry-protocol-production.up.railway.app/status | jq '.demoMode, .signerLoaded, .onChainTxCount, .chainId'
-# -> false, true, 5028+, 1952
+# -> false, true, 28000+, 1952
 
 # OnchainOS skill calls in last 50 iterations
 curl https://parry-protocol-production.up.railway.app/onchainos-proof | jq '.totalCalls, .calls[0]'
@@ -90,7 +90,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 `onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Testnet. This counter:
 - Is read directly from the chain via `provider.getTransactionCount(agentWallet)`
 - **Does not reset on Railway restarts** — it accumulates across all agent runs since deployment on April 9, 2026
-- Currently **5,000+ confirmed transactions**
+- Currently **28,000+ confirmed transactions**
 
 `totalHedgesTx` and `iteration` reset on each Railway container restart. These are in-process counters, not on-chain state. The wallet nonce is the authoritative on-chain proof.
 
@@ -544,7 +544,7 @@ Most hackathon agents are scripts with mock data. Parry Protocol:
 
 1. **Runs genuinely autonomously** — 15s loop, no human triggers, Railway 24/7
 2. **Uses OnchainOS for real data** — 3 skill types called on every cycle, logged to `/onchainos-proof`
-3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 5,000+ confirmed X Layer TXs verifiable on OKLink
+3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 28,000+ confirmed X Layer TXs verifiable on OKLink
 4. **Implements real DeFi math** — exact Uniswap V3 delta formula, not fake numbers
 5. **Has a working payment protocol** — x402 middleware with real signature verification
 6. **Is AI-queryable** — MCP server with 6 tools callable by Claude/GPT in natural language
