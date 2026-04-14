@@ -538,7 +538,9 @@ Most hackathon agents are scripts with mock data. Parry Protocol:
 
 ### Build Timeline
 
-Parry Protocol was built **in a single continuous 10-hour sprint** on April 12, 2026, specifically for the OKX Build-X / X Layer Arena Hackathon. Every component — contracts, agent, MCP server, x402 server, frontend — was designed, written, tested, and deployed from scratch in sequence. The git history reflects this: 41 commits from 04:23 UTC to 14:23 UTC on one day, covering initial scaffold → contract deployment → Railway live agent → frontend → MCP → x402 → scoring iteration.
+Parry Protocol was built **in a single continuous 10-hour sprint** on April 12, 2026, specifically for the OKX Build-X / X Layer Arena Hackathon. Every component — contracts, agent, MCP server, x402 server, frontend — was designed, written, tested, and deployed from scratch in sequence. The initial git history reflects this: 41 commits from 04:23 UTC to 14:23 UTC on one day, covering initial scaffold → contract deployment → Railway live agent → frontend → MCP → x402 → scoring iteration.
+
+Subsequent commits on April 14, 2026 reflect post-submission improvements: README accuracy fixes, frontend URL corrections, and documentation polish. The core protocol, contracts, and agent were untouched.
 
 This is an intentional, focused build — not a ported existing project. The 5,289+ on-chain transactions are the proof of work.
 
