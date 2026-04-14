@@ -189,9 +189,9 @@ Called **every 2 iterations** in live mode (every 30 seconds).
 
 ```typescript
 const result = await compounder.maybeCompound(investmentId, tokenId, tickLower, tickUpper, block, force);
-// Collects accrued trading fees from the LP position
-// Reinvests them back into the LP position (earn-on-earn)
-// Logged to /onchainos-proof with feesCollected amount
+// Invokes okx-defi-invest:compound every 30s on the registered investment position
+// Collects accrued trading fees; reinvests them when feesCollected > threshold
+// Logged to /onchainos-proof every invocation regardless of reinvestment outcome
 ```
 
 All three skill invocations are logged with timestamp, args, and result in the **`/onchainos-proof`** endpoint, providing real-time verifiable proof of OnchainOS usage.

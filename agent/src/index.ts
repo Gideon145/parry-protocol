@@ -16,8 +16,7 @@ const CONFIG = {
   rpcUrl: process.env.RPC_URL || "https://testrpc.xlayer.tech",
   chainId: parseInt(process.env.CHAIN_ID || "1952"),
   // X Layer testnet deployer wallet (testnet only — no mainnet funds)
-  privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || process.env.AGENT_PK
-    || "0x62a232ee012e29eada8694487f5640c2ccfac38e1d69ca3f0cc14c799f6909aa",
+  privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || process.env.AGENT_PK || "",
   vaultAddress: process.env.VAULT_ADDRESS || "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e",
   agentWallet: process.env.AGENT_WALLET || "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
 
@@ -222,9 +221,14 @@ async function main(): Promise<void> {
       client,
       CONFIG.vaultAddress,
       CONFIG.rpcUrl,
-      CONFIG.privateKey
+      CONFIG.privateKey,
+      logOnchainOS
     );
   }
+
+  // Compute ticks relative to actual entry price tick (fixes out-of-range issue)
+  // For ETH at ~$2000: log(2000)/log(1.0001) ≈ 75025
+  const entryTick = Math.round(Math.log(_demoPrice) / Math.log(1.0001));
 
   // Demo position state
   const demoPolicy = {
@@ -232,8 +236,8 @@ async function main(): Promise<void> {
     pool: "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",  // WETH on X Layer
     tokenId: CONFIG.positionTokenId,
     investmentId: CONFIG.investmentId,
-    tickLower: -600,
-    tickUpper: 600,
+    tickLower: entryTick - 600,
+    tickUpper: entryTick + 600,
     liquidity: BigInt("1000000000000000000"), // 1e18
     entryPrice: _demoPrice,
   };
@@ -241,6 +245,7 @@ async function main(): Promise<void> {
   state.entryPrice = demoPolicy.entryPrice;
   state.tickLower = demoPolicy.tickLower;
   state.tickUpper = demoPolicy.tickUpper;
+  state.policies = [demoPolicy.policyId];
   state.running = true;
 
   logger.PARRY("Agent loop started.");

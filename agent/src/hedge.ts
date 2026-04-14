@@ -29,6 +29,7 @@ export class HedgeExecutor {
   private vault: ethers.Contract;
   private vaultAddress: string;
   private agentAddress: string;
+  private logCall?: (skill: string, args: Record<string, unknown>, result: string) => void;
 
   // Minimum hedge amount to avoid dust txns (in USD)
   private readonly MIN_HEDGE_USD = 1.0;
@@ -39,7 +40,8 @@ export class HedgeExecutor {
     client: OnchainOSClient,
     vaultAddress: string,
     rpcUrl: string,
-    privateKey: string
+    privateKey: string,
+    logCall?: (skill: string, args: Record<string, unknown>, result: string) => void
   ) {
     this.client = client;
     this.vaultAddress = vaultAddress;
@@ -47,6 +49,7 @@ export class HedgeExecutor {
     this.signer = new ethers.Wallet(privateKey, this.provider);
     this.vault = new ethers.Contract(vaultAddress, INSURANCE_VAULT_ABI, this.signer);
     this.agentAddress = this.signer.address;
+    this.logCall = logCall;
   }
 
   /**
@@ -83,8 +86,10 @@ export class HedgeExecutor {
     }
 
     // ── Pre-flight security scan ────────────────────────────────────────────
-    const riskScan = await this.client.scanTokenRisk(baseToken);
-    if (riskScan.success) {
+    const riskScan = await this.client.scanTokenRisk(baseToken);    const riskResult = riskScan.success
+      ? ((riskScan.data as Record<string, unknown>)?.isHoneypot ? "honeypot" : "safe")
+      : "scan-unavailable";
+    this.logCall?.("okx-dex-security:scanToken", { token: baseToken }, riskResult);    if (riskScan.success) {
       const risk = riskScan.data as Record<string, unknown>;
       if (risk?.isHoneypot || risk?.isHighRisk) {
         logger.error(`[HedgeExecutor] Token risk scan flagged ${baseToken}, skipping hedge`);
