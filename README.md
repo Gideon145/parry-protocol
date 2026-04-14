@@ -9,6 +9,7 @@
 [![MCP Server](https://img.shields.io/badge/MCP%20Server-ample--wisdom--production-purple)](https://ample-wisdom-production-f4c9.up.railway.app/tools)
 [![x402 Server](https://img.shields.io/badge/x402%20Server-radiant--recreation--production-orange)](https://radiant-recreation-production-f473.up.railway.app/payment-info)
 [![X Layer Testnet](https://img.shields.io/badge/Chain-X%20Layer%20Testnet%201952-blue)](https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394)
+[![Audited](https://img.shields.io/badge/Audited-ChainGPT_AI-00c853)](https://app.chaingpt.org/smart-contract-auditor)
 
 ---
 
@@ -512,6 +513,28 @@ cd frontend && npm install && npm run dev
 | `SIGNER_KEY` | Wallet for payment verification |
 | `AGENT_WALLET` | Receives OKB micropayments |
 | `ALLOW_DEMO_AUTH_BYPASS` | `true` to allow demo activations |
+
+---
+
+## Security Audit
+
+`ParryVault.sol` was audited by the **[ChainGPT AI Smart Contract Auditor](https://app.chaingpt.org/smart-contract-auditor)** on April 14, 2026.
+
+**Verdict: No critical vulnerabilities found.**
+
+| Finding | Severity | Status |
+|---|---|---|
+| Reentrancy on `claimProtection` + `withdrawCapital` | ✅ Already protected | `ReentrancyGuard` in place |
+| Agent-only access on sensitive functions | ✅ Already correct | `onlyAgent` modifier |
+| Owner-only on capital management | ✅ Already correct | `onlyOwner` modifier |
+| Solidity 0.8.x overflow protection | ✅ Built-in | No action needed |
+| ETH transfer via `call` could fail silently | Low | Reverts on failure — safe by design |
+| `block.number` dependence for expiry | Informational | Acceptable for block-based durations |
+| `expireProtection` callable by anyone | Informational | Intentional — permissionless expiry mirrors `checkAndSettle` pattern |
+| No global contract pause | Informational | Out of scope for hackathon deployment |
+| Owner capital withdrawal cap | Low | Testnet deployment — owner is deployer |
+
+The audit confirms `ReentrancyGuard`, `SafeERC20`, `onlyAgent`, and `onlyOwner` patterns are correctly implemented throughout.
 
 ---
 
