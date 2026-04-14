@@ -515,23 +515,7 @@ cd frontend && npm install && npm run dev
 
 ---
 
-## Hackathon Submission Checklist
-
-| Item | Status |
-|---|---|
-| GitHub repo public | Done |
-| Live frontend deployed | Done — https://frontend-mu-three-93.vercel.app |
-| Demo video submitted | Done — https://youtu.be/HAIuoL-LiIA |
-| Agent running live (not demo) | Done — `demoMode: false` at /status |
-| OnchainOS skills used (3 types) | Done — getPrice + getVol every 15s, compound every 30s |
-| x402 payment protocol | Done — /protect/activate with full middleware, /protect/demo for judges |
-| MCP server with tools | Done — 6 tools, HTTP + stdio |
-| Smart contracts deployed | Done — ParryVault + ProtectionCert on Chain 1952 |
-| 5,000+ on-chain TXs | Done — wallet nonce verifiable on OKLink |
-| Google Form submitted | Done |
-| X post with hackathon tag | Done |
-
-### What Makes This Different
+## What Makes This Different
 
 Most hackathon agents are scripts with mock data. Parry Protocol:
 
