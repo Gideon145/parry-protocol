@@ -501,7 +501,7 @@ cd frontend && npm install && npm run dev
 | `SIGNER_KEY` | testnet key | Agent wallet private key |
 | `VAULT_ADDRESS` | `0x57C7...` | ParryVault contract address |
 | `AGENT_WALLET` | `0x94A4...` | Agent wallet address |
-| `RPC_URL` | `https://testrpc.xlayer.tech` | X Layer RPC |
+| `RPC_URL` | `https://rpc.xlayer.tech` | X Layer Mainnet RPC |
 | `CHAIN_ID` | `196` | X Layer Mainnet |
 | `DEMO_MODE` | `false` | Paper mode (no real TXs) |
 | `LOOP_INTERVAL_MS` | `15000` | Agent loop interval |

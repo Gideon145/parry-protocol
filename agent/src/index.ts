@@ -13,7 +13,7 @@ import { logger } from "./logger";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CONFIG = {
-  rpcUrl: process.env.RPC_URL || "https://testrpc.xlayer.tech",
+  rpcUrl: process.env.RPC_URL || "https://rpc.xlayer.tech",
   chainId: parseInt(process.env.CHAIN_ID || "1952"),
   // X Layer testnet deployer wallet (testnet only — no mainnet funds)
   privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || process.env.AGENT_PK || "",
