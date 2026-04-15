@@ -43,7 +43,7 @@ const AGENT_URL = (process.env.NEXT_PUBLIC_AGENT_URL || "http://localhost:3001")
 const FALLBACK_AGENT_URL = "https://parry-protocol-production.up.railway.app";
 const FALLBACK_WALLET = "0x94A4365E6B7E79791258A3Fa071824BC2b75a394";
 const FALLBACK_VAULT = "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e";
-const OKLINK_BASE = "https://oklink.com/x-layer-testnet";
+const OKLINK_BASE = "https://www.oklink.com/xlayer";
 
 const INTRO_POINTS = [
   { keyword: "MONITOR", text: "ETH/USDC price volatility in real-time using OnchainOS market data feeds", color: "var(--cyan)" },
@@ -96,6 +96,23 @@ export default function Home() {
   const [x402Loading, setX402Loading] = useState(false);
   const [x402Result, setX402Result] = useState<Record<string, unknown> | null>(null);
   const [x402Error, setX402Error] = useState<string | null>(null);
+  const [mainnetTxCount, setMainnetTxCount] = useState<number>(0);
+
+  // Poll mainnet TX count every 15s directly from agent
+  useEffect(() => {
+    const fetchMainnetTx = async () => {
+      try {
+        const res = await fetch(`${FALLBACK_AGENT_URL}/status`);
+        const d = await res.json();
+        if (d.chainId === 196 && typeof d.onChainTxCount === "number") {
+          setMainnetTxCount(d.onChainTxCount);
+        }
+      } catch {}
+    };
+    fetchMainnetTx();
+    const id = setInterval(fetchMainnetTx, 15_000);
+    return () => clearInterval(id);
+  }, []);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -683,11 +700,19 @@ export default function Home() {
           />
           <MetricCard
             label="ON-CHAIN CONFIRMED"
-            value={status.onChainTxCount && status.onChainTxCount > 0 ? `${status.onChainTxCount.toLocaleString()}` : "3,000+"}
-            subvalue="wallet nonce on X Layer"
+            value={status.onChainTxCount && status.onChainTxCount > 0 ? `${status.onChainTxCount.toLocaleString()}` : "30,000+"}
+            subvalue="wallet nonce — testnet history"
             color="var(--amber)"
             unit="TXS"
-            tooltip="Total confirmed transactions from the Agentic Wallet on X Layer Testnet. Verifiable on OKLink."
+            tooltip="Lifetime confirmed transactions from the Agentic Wallet on X Layer Testnet (Chain 1952). Verifiable on OKLink."
+          />
+          <MetricCard
+            label="MAINNET TXS (LIVE)"
+            value={mainnetTxCount > 0 ? mainnetTxCount.toLocaleString() : "..."}
+            subvalue="X Layer mainnet · Chain 196"
+            color="var(--green)"
+            unit="TXS"
+            tooltip="Live confirmed transactions on X Layer Mainnet (Chain ID 196). Updates every 15 seconds directly from the agent wallet nonce."
           />
         </div>
 

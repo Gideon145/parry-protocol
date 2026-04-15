@@ -58,7 +58,8 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 | OnchainOS Proof | https://parry-protocol-production.up.railway.app/onchainos-proof | Live |
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
 | x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
-| Agent Wallet (OKLink) | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | 30,000+ TXs (testnet) + live mainnet |
+| Agent Wallet — Testnet history | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **30,000+ TXs** on X Layer Testnet |
+| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **Live TXs** on X Layer Mainnet (Chain 196) |
 | ParryVault Contract | https://www.oklink.com/xlayer/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | **Mainnet** (Chain 196) |
 | ProtectionCert NFT | https://www.oklink.com/xlayer/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | **Mainnet** (Chain 196) |
 | Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
