@@ -90,7 +90,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 
 `onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Mainnet (Chain ID 196). This counter:
 - Is read directly from the chain via `provider.getTransactionCount(agentWallet)`
-- **Does not reset on Railway restarts** — it accumulates across all agent runs since deployment on April 9, 2026
+- **Does not reset on Railway restarts** — it accumulates across all agent runs since first deployment on April 12, 2026
 - Currently **30,000+ confirmed transactions** on testnet + **1,000+ on X Layer Mainnet (Chain 196)**
 
 `totalHedgesTx` and `iteration` reset on each Railway container restart. These are in-process counters, not on-chain state. The wallet nonce is the authoritative on-chain proof.
@@ -467,7 +467,7 @@ npm run dev           # Live mode (real OnchainOS, real X Layer TXs)
 DEMO_MODE=true npm run dev  # Paper trading mode (no real TXs)
 ```
 
-> **Production note:** Railway deployment runs with `DEMO_MODE=false`. All OnchainOS skill calls are real. `demoMode: false` in `/status` confirms this. The agent has been running live since April 9, 2026.
+> **Production note:** Railway deployment runs with `DEMO_MODE=false`. All OnchainOS skill calls are real. `demoMode: false` in `/status` confirms this. The agent has been running live since April 12, 2026.
 
 ### 3. Start MCP Server
 
