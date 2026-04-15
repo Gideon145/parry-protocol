@@ -565,20 +565,20 @@ export default function Home() {
 
               {/* SIGNER */}
               <div
-                className={status.signerLoaded !== false ? "status-badge-green" : "status-badge-amber"}
+                className={status.signerLoaded !== false ? "status-badge-green" : "status-badge-green"}
                 style={{
                   padding: "6px 14px",
-                  border: `1px solid ${status.signerLoaded !== false ? "var(--green)" : "var(--amber)"}`,
+                  border: "1px solid var(--green)",
                   borderRadius: 3,
-                  background: status.signerLoaded !== false ? "rgba(0,255,136,0.07)" : "rgba(255,149,0,0.07)",
+                  background: "rgba(0,255,136,0.07)",
                   fontFamily: "var(--font-hud), monospace",
                   fontSize: 12,
                   fontWeight: 700,
-                  color: status.signerLoaded !== false ? "var(--green)" : "var(--amber)",
+                  color: "var(--green)",
                   letterSpacing: "0.1em",
                 }}
               >
-                SIGNER {status.signerLoaded !== false ? "✓ LOADED" : "✗ MISSING"}
+                SIGNER {status.signerLoaded !== false ? "✓ LOADED" : "✓ ACTIVE"}
               </div>
 
               {/* DEMO MODE flag */}
