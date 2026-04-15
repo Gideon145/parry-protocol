@@ -617,8 +617,19 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Row 3: last sync */}
+            {/* Row 3: running-since + last sync */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "flex-end" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-hud), monospace",
+                  fontSize: 12,
+                  color: "var(--cyan)",
+                  letterSpacing: "0.08em",
+                  fontWeight: 600,
+                }}
+              >
+                ⏱ RUNNING SINCE APR 13, 2026
+              </span>
               <span
                 style={{
                   fontFamily: "var(--font-hud), monospace",
