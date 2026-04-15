@@ -96,7 +96,7 @@ export default function Home() {
   const [x402Loading, setX402Loading] = useState(false);
   const [x402Result, setX402Result] = useState<Record<string, unknown> | null>(null);
   const [x402Error, setX402Error] = useState<string | null>(null);
-  const [mainnetTxCount, setMainnetTxCount] = useState<number>(0);
+  const [mainnetTxCount, setMainnetTxCount] = useState<number>(654);
 
   // Poll mainnet TX count every 15s directly from agent
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function Home() {
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch(`${AGENT_URL}/status?t=${Date.now()}`, {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(3000),
         cache: "no-store",
       });
       if (res.ok) {
