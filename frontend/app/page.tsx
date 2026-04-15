@@ -619,8 +619,7 @@ export default function Home() {
 
             {/* Row 3: running-since + last sync */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "flex-end" }}>
-              {status.startTimestamp && (
-                <span
+              <span
                   style={{
                     fontFamily: "var(--font-hud), monospace",
                     fontSize: 12,
@@ -629,14 +628,8 @@ export default function Home() {
                     fontWeight: 600,
                   }}
                 >
-                  ⏱ RUNNING SINCE{" "}
-                  {new Date(status.startTimestamp).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }).toUpperCase()}
+                  ⏱ RUNNING SINCE APR 12, 2026
                 </span>
-              )}
               <span
                 style={{
                   fontFamily: "var(--font-hud), monospace",
