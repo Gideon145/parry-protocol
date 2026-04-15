@@ -545,7 +545,7 @@ Most hackathon agents are scripts with mock data. Parry Protocol:
 
 1. **Runs genuinely autonomously** — 15s loop, no human triggers, Railway 24/7
 2. **Uses OnchainOS for real data** — 3 skill types called on every cycle, logged to `/onchainos-proof`
-3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 30,000+ confirmed X Layer TXs verifiable on OKLink
+3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 30,000+ testnet TXs + 1,000+ **X Layer Mainnet (Chain 196)** TXs, all verifiable on OKLink
 4. **Implements real DeFi math** — exact Uniswap V3 delta formula, not fake numbers
 5. **Has a working payment protocol** — x402 middleware with real signature verification
 6. **Is AI-queryable** — MCP server with 6 tools callable by Claude/GPT in natural language
@@ -566,7 +566,9 @@ Parry Protocol was built **in a single continuous 10-hour sprint** on April 12, 
 
 Subsequent commits on April 14, 2026 reflect post-submission improvements: README accuracy fixes, frontend URL corrections, and documentation polish. The core protocol, contracts, and agent were untouched.
 
-This is an intentional, focused build — not a ported existing project. The 5,289+ on-chain transactions are the proof of work.
+On April 15, 2026 (ahead of the 23:59 UTC deadline), contracts were redeployed to **X Layer Mainnet (Chain 196)** and Railway environment variables were updated — agent immediately resumed live operation on mainnet, accumulating **1,000+ confirmed mainnet transactions** before deadline.
+
+This is an intentional, focused build — not a ported existing project. **30,000+ testnet transactions + 1,000+ mainnet transactions** are the proof of work.
 
 ---
 
