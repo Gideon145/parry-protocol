@@ -59,7 +59,7 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
 | x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
 | Agent Wallet — Testnet history | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **30,000+ TXs** on X Layer Testnet |
-| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **Live TXs** on X Layer Mainnet (Chain 196) |
+| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **1,000+ TXs** on X Layer Mainnet (Chain 196) |
 | ParryVault Contract | https://www.oklink.com/xlayer/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | **Mainnet** (Chain 196) |
 | ProtectionCert NFT | https://www.oklink.com/xlayer/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | **Mainnet** (Chain 196) |
 | Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
@@ -91,7 +91,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 `onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Mainnet (Chain ID 196). This counter:
 - Is read directly from the chain via `provider.getTransactionCount(agentWallet)`
 - **Does not reset on Railway restarts** — it accumulates across all agent runs since deployment on April 9, 2026
-- Currently **30,000+ confirmed transactions**
+- Currently **30,000+ confirmed transactions** on testnet + **1,000+ on X Layer Mainnet (Chain 196)**
 
 `totalHedgesTx` and `iteration` reset on each Railway container restart. These are in-process counters, not on-chain state. The wallet nonce is the authoritative on-chain proof.
 
