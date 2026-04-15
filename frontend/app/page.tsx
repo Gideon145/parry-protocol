@@ -628,7 +628,7 @@ export default function Home() {
                     fontWeight: 600,
                   }}
                 >
-                  ⏱ RUNNING SINCE APR 12, 2026
+                  ⚡ DEPLOYED APR 12, 2026
                 </span>
               <span
                 style={{
