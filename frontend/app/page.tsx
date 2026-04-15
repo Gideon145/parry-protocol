@@ -856,6 +856,7 @@ export default function Home() {
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {[
                 { name: "okx-dex-market", status: "ACTIVE", color: "var(--green)" },
+                { name: "okx-dex-signal", status: "ACTIVE", color: "var(--green)" },
                 { name: "okx-dex-swap", status: "READY", color: "var(--cyan)" },
                 { name: "okx-defi-invest", status: "ACTIVE", color: "var(--green)" },
                 { name: "okx-agentic-wallet", status: "ACTIVE", color: "var(--green)" },
