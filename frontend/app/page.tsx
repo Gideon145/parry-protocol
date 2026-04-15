@@ -50,7 +50,7 @@ const INTRO_POINTS = [
   { keyword: "COMPUTE", text: "Delta exposure using exact Uniswap V3 math: ΔV/ΔS = L/√S − L/√Pb", color: "var(--purple)" },
   { keyword: "HEDGE", text: "LP positions autonomously via ETH→USDC swaps executed on OKX DEX", color: "var(--green)" },
   { keyword: "COLLECT", text: "Trading fees continuously and reinvest them back into the LP (earn-on-earn)", color: "var(--green)" },
-  { keyword: "RECORD", text: "Every transaction permanently on X Layer Testnet — 100% verifiable on-chain", color: "var(--amber)" },
+  { keyword: "RECORD", text: "Every transaction permanently on X Layer Mainnet — 100% verifiable on-chain", color: "var(--amber)" },
   { keyword: "PROTECT", text: "LPs with IL insurance certificates issued by the ParryVault.sol smart contract", color: "var(--cyan)" },
 ];
 
@@ -232,7 +232,7 @@ export default function Home() {
       label: "ON-CHAIN HEDGES EXECUTED",
       value: `${status.totalHedgesTx} TRANSACTIONS`,
       why: "WHY IT MATTERS",
-      detail: "Every hedge transaction is broadcast to X Layer Testnet and permanently recorded. This creates an immutable audit trail — verifiable by anyone on OKLink explorer.",
+      detail: "Every hedge transaction is broadcast to X Layer Mainnet and permanently recorded. This creates an immutable audit trail — verifiable by anyone on OKLink explorer.",
       advantage: "100% transparent. Unlike off-chain bots, every Parry action is on-chain and provable.",
     },
     {
@@ -306,7 +306,7 @@ export default function Home() {
             </span>
           </span>
           <span style={{ color: "var(--text-faint)" }}>
-            X LAYER TESTNET (1952)
+            X LAYER MAINNET (196)
           </span>
           <span style={{ color: "var(--text-faint)" }}>ONCHAIN OS POWERED</span>
           <span style={{ color: "var(--text-faint)" }}>
@@ -481,7 +481,7 @@ export default function Home() {
             />
           </div>
           <div style={{ fontSize: 13, color: "var(--text-dim)", marginTop: 10, letterSpacing: "0.12em" }}>
-            {connected ? "LIVE AGENT FEED CONNECTED" : "SIMULATED DEMO FEED — AGENT LOADING"} · X LAYER TESTNET · CHAIN ID 1952 · ONCHAIN OS POWERED
+            {connected ? "LIVE AGENT FEED CONNECTED" : "SIMULATED DEMO FEED — AGENT LOADING"} · X LAYER MAINNET · CHAIN ID 196 · ONCHAIN OS POWERED
           </div>
         </div>
 
@@ -577,7 +577,7 @@ export default function Home() {
                   letterSpacing: "0.1em",
                 }}
               >
-                CHAIN ID {status.chainId ?? 1952}
+                CHAIN ID {status.chainId ?? 196}
               </div>
 
               {/* SIGNER */}
@@ -694,10 +694,10 @@ export default function Home() {
           <MetricCard
             label="ON-CHAIN CONFIRMED"
             value={status.onChainTxCount && status.onChainTxCount > 0 ? `${status.onChainTxCount.toLocaleString()}` : "30,000+"}
-            subvalue="wallet nonce — testnet history"
+            subvalue="wallet nonce — X Layer Mainnet"
             color="var(--amber)"
             unit="TXS"
-            tooltip="Lifetime confirmed transactions from the Agentic Wallet on X Layer Testnet (Chain 1952). Verifiable on OKLink."
+            tooltip="Lifetime confirmed transactions from the Agentic Wallet on X Layer Mainnet (Chain 196). Verifiable on OKLink."
           />
           <MetricCard
             label="MAINNET TXS (LIVE)"
@@ -1040,7 +1040,7 @@ export default function Home() {
           </div>
           <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 18, lineHeight: 1.6 }}>
             Click to activate a simulated IL protection policy via the x402 micropayment protocol.
-            In production, this requires an OnchainOS <code style={{ color: "var(--cyan)", background: "rgba(0,212,255,0.08)", padding: "1px 5px", borderRadius: 2 }}>okx-x402-payment</code> skill signature paying in OKB on X Layer (Chain ID 1952).
+            In production, this requires an OnchainOS <code style={{ color: "var(--cyan)", background: "rgba(0,212,255,0.08)", padding: "1px 5px", borderRadius: 2 }}>okx-x402-payment</code> skill signature paying in OKB on X Layer (Chain ID 196).
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 18 }}>
             <button
@@ -1313,7 +1313,7 @@ export default function Home() {
               letterSpacing: "0.15em",
             }}
           >
-            OKX BUILD-X HACKATHON · X LAYER TESTNET · ONCHAIN OS · UNISWAP V3 · EIP-712
+            OKX BUILD-X HACKATHON · X LAYER MAINNET · ONCHAIN OS · UNISWAP V3 · EIP-712
           </div>
         </footer>
       </div>
