@@ -291,6 +291,18 @@ async function main(): Promise<void> {
       state.volRegime = volState.regime;
       state.hedgeRatio = volState.hedgeRatio;
 
+      // ── Step 2b: DEX signals (okx-dex-signal:get_signals) ─────────────────
+      if (iteration % 5 === 1) {
+        const signals = await client.getDexSignals(CONFIG.baseSymbol);
+        const signalSummary = signals.success && signals.data
+          ? (typeof signals.data === "string"
+              ? signals.data.slice(0, 80)
+              : JSON.stringify(signals.data).slice(0, 80))
+          : "unavailable";
+        logOnchainOS("okx-dex-signal:get_signals", { symbol: CONFIG.baseSymbol }, signalSummary);
+        addLog(`[SIGNAL] ${signalSummary.slice(0, 60)}`);
+      }
+
       // ── Step 3: Compute optimal ticks (every 50 iterations) ────────────────
       if (iteration % 50 === 1) {
         const optTicks = computeOptimalTicks(
@@ -421,6 +433,18 @@ async function main(): Promise<void> {
           `[Vol] ${voltStr(volState.realizedVolBps)} | regime=${volState.regime} | ` +
           `hedge=${(volState.hedgeRatio * 100).toFixed(0)}%`
         );
+      }
+
+      // ── Step 8: Token security scan (okx-security:scan_token_security) ─────
+      if (iteration % 30 === 1) {
+        const scan = await client.scanTokenRisk(CONFIG.baseToken);
+        const scanSummary = scan.success && scan.data
+          ? (typeof scan.data === "string"
+              ? scan.data.slice(0, 80)
+              : JSON.stringify(scan.data).slice(0, 80))
+          : "scan unavailable";
+        logOnchainOS("okx-security:scan_token_security", { token: CONFIG.baseToken }, scanSummary);
+        addLog(`[SECURITY] Token scan: ${scanSummary.slice(0, 50)}`);
       }
 
     } catch (err) {

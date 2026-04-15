@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "watch": "ts-node-dev --respawn src/index.ts"
+    "watch": "ts-node-dev --respawn src/index.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "axios": "^1.6.8",
@@ -20,6 +21,7 @@
     "@types/ws": "^8.5.10",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^2.1.9"
   }
 }

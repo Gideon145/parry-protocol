@@ -234,6 +234,13 @@ export class OnchainOSClient {
     return this.run(`security token-risk --token ${tokenAddress} --chain ${chain}`);
   }
 
+  // ─── DEX Signals (okx-dex-signal) ────────────────────────────────────────
+
+  /** Get directional trading signals for a symbol based on on-chain DEX activity */
+  async getDexSignals(symbol: string, chain = "xlayer") {
+    return this.run(`dex signal --symbol ${symbol} --chain ${chain}`);
+  }
+
   // ─── Gateway (okx-onchain-gateway) ────────────────────────────────────────
 
   /** Broadcast a pre-signed transaction */
