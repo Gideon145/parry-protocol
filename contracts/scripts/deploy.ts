@@ -6,7 +6,11 @@ const require = createRequire(import.meta.url);
 const ParryVaultArtifact   = require("../artifacts/contracts/ParryVault.sol/ParryVault.json");
 const ProtectionCertArtifact = require("../artifacts/contracts/ProtectionCert.sol/ProtectionCert.json");
 
-const RPC_URL    = "https://testrpc.xlayer.tech";
+// Switch mainnet vs testnet via NETWORK env var:
+//   NETWORK=mainnet  → https://rpc.xlayer.tech  (Chain 196)
+//   NETWORK=testnet  → https://testrpc.xlayer.tech (Chain 1952)
+const MAINNET = (process.env.NETWORK ?? "testnet") === "mainnet";
+const RPC_URL = MAINNET ? "https://rpc.xlayer.tech" : "https://testrpc.xlayer.tech";
 const PRIVATE_KEY = process.env.PRIVATE_KEY!;
 
 async function main() {
@@ -51,13 +55,13 @@ async function main() {
   console.log("  ProtectionCert.vault =", vaultAddress);
   console.log("  ParryVault.certContract =", certAddress);
 
-  // 4. Seed initial vault capital
-  const seedAmount = ethers.parseEther("0.05");
+  // 4. Seed initial vault capital (minimal — just enough to initialise)
+  const seedAmount = ethers.parseEther("0.001");
   await (await vaultContract.depositCapital({ value: seedAmount })).wait();
   console.log("  Vault seeded with", ethers.formatEther(seedAmount), "OKB");
 
   const deployments = {
-    network: "xlayer_testnet",
+    network: MAINNET ? "xlayer_mainnet" : "xlayer_testnet",
     chainId: Number(network.chainId),
     deployer: deployer.address,
     ParryVault: vaultAddress,
@@ -65,7 +69,15 @@ async function main() {
     deployedAt: new Date().toISOString(),
   };
 
-  fs.writeFileSync("deployments.json", JSON.stringify(deployments, null, 2));
+  const outFile = MAINNET ? "deployments-mainnet.json" : "deployments.json";
+  fs.writeFileSync(outFile, JSON.stringify(deployments, null, 2));
+  console.log(`  Deployments saved to ${outFile}`);
+  if (MAINNET) {
+    console.log("\n⚡ MAINNET DEPLOY COMPLETE — update agent env vars:");
+    console.log(`  VAULT_ADDRESS=${vaultAddress}`);
+    console.log(`  RPC_URL=https://rpc.xlayer.tech`);
+    console.log(`  CHAIN_ID=196`);
+  }
 
   console.log("\n✓ Parry Protocol deployed successfully");
   console.log("  Deployments saved to deployments.json");
