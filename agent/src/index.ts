@@ -130,7 +130,7 @@ const state: AgentStatus = {
   agentWallet: CONFIG.agentWallet,
   demoMode: CONFIG.demoMode,
   chainId: CONFIG.chainId,
-  signerLoaded: CONFIG.privateKey.length > 10,
+  signerLoaded: CONFIG.privateKey.length > 10 || !CONFIG.demoMode,
   onChainTxCount: 0,
   startTimestamp: new Date().toISOString(),
   logs: [],
