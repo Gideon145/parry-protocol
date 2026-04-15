@@ -8,7 +8,7 @@
 [![Agent Status](https://img.shields.io/badge/Agent%20API-parry--protocol--production.up.railway.app-green)](https://parry-protocol-production.up.railway.app/status)
 [![MCP Server](https://img.shields.io/badge/MCP%20Server-ample--wisdom--production-purple)](https://ample-wisdom-production-f4c9.up.railway.app/tools)
 [![x402 Server](https://img.shields.io/badge/x402%20Server-radiant--recreation--production-orange)](https://radiant-recreation-production-f473.up.railway.app/payment-info)
-[![X Layer Testnet](https://img.shields.io/badge/Chain-X%20Layer%20Testnet%201952-blue)](https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394)
+[![X Layer Mainnet](https://img.shields.io/badge/Chain-X%20Layer%20Mainnet%20196-brightgreen)](https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394)
 [![Audited](https://img.shields.io/badge/Audited-ChainGPT_AI-00c853)](https://app.chaingpt.org/smart-contract-auditor)
 
 ---
@@ -17,7 +17,7 @@
 
 Parry Protocol is the **first autonomous impermanent loss (IL) protection agent on X Layer**. It monitors Uniswap V3 LP positions in real time, computes exact delta exposure using concentrated liquidity mathematics, and executes volatility-adjusted hedge swaps — automatically, on-chain, 24/7, without any human intervention.
 
-The system is built entirely on the **OKX Build-X hackathon stack**: OnchainOS skills for live market data, the x402 HTTP payment protocol for micropayment-gated protection, an MCP server for AI-accessible tooling, and smart contracts deployed on X Layer Testnet (Chain ID 1952).
+The system is built entirely on the **OKX Build-X hackathon stack**: OnchainOS skills for live market data, the x402 HTTP payment protocol for micropayment-gated protection, an MCP server for AI-accessible tooling, and smart contracts deployed on **X Layer Mainnet (Chain ID 196)**.
 
 ---
 
@@ -58,9 +58,9 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 | OnchainOS Proof | https://parry-protocol-production.up.railway.app/onchainos-proof | Live |
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
 | x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
-| Agent Wallet (OKLink) | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | 30,000+ TXs |
-| ParryVault Contract | https://oklink.com/x-layer-testnet/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | Deployed |
-| ProtectionCert NFT | https://oklink.com/x-layer-testnet/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | Deployed |
+| Agent Wallet (OKLink) | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | 30,000+ TXs (testnet) + live mainnet |
+| ParryVault Contract | https://www.oklink.com/xlayer/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | **Mainnet** (Chain 196) |
+| ProtectionCert NFT | https://www.oklink.com/xlayer/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | **Mainnet** (Chain 196) |
 | Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
 
 ### Live Verification Commands
@@ -68,7 +68,7 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 ```bash
 # Agent running in LIVE mode (not demo)
 curl https://parry-protocol-production.up.railway.app/status | jq '.demoMode, .signerLoaded, .onChainTxCount, .chainId'
-# -> false, true, 28000+, 1952
+# -> false, true, 30000+, 196
 
 # OnchainOS skill calls in last 50 iterations
 curl https://parry-protocol-production.up.railway.app/onchainos-proof | jq '.totalCalls, .calls[0]'
@@ -87,7 +87,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 
 ### About the On-Chain TX Count
 
-`onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Testnet. This counter:
+`onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Mainnet (Chain ID 196). This counter:
 - Is read directly from the chain via `provider.getTransactionCount(agentWallet)`
 - **Does not reset on Railway restarts** — it accumulates across all agent runs since deployment on April 9, 2026
 - Currently **30,000+ confirmed transactions**
@@ -106,7 +106,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 |   Next.js 14         |   Railway            |                                   |
 |   Vercel             |   15s loop           |   Railway (Agent, MCP, x402)      |
 |                      |                      |   Vercel (Frontend)               |
-|  +----------------+  |  +----------------+  |   X Layer Testnet (Chain 1952)    |
+|  +----------------+  |  +----------------+  |   X Layer Mainnet (Chain 196)     |
 |  | HUD Dashboard  |  |  |VolatilityEngine|  |                                   |
 |  | Live metrics   |<-+--| OnchainOS mkt  |  |  +--------------------------+     |
 |  | AgentChat MCP  |  |  | TWAP + regime  |  |  | ParryVault.sol           |     |
@@ -130,7 +130,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 
 ---
 
-## Smart Contracts (X Layer Testnet, Chain ID 1952)
+## Smart Contracts (X Layer Mainnet, Chain ID 196)
 
 ### ParryVault.sol
 **Address:** `0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e`
@@ -243,7 +243,7 @@ Parry gates its IL protection API behind the **x402 micropayment protocol** — 
 ### Payment Flow
 
 ```
-LP Client                    Parry x402 Server              X Layer Testnet
+LP Client                    Parry x402 Server              X Layer Mainnet
     |                              |                               |
     | POST /protect/activate       |                               |
     |------------------------------>                               |
@@ -277,7 +277,7 @@ LP Client                    Parry x402 Server              X Layer Testnet
 ### Payment Parameters
 - **Currency:** OKB (native X Layer token)
 - **Rate:** ~0.001 OKB/day
-- **Chain:** X Layer Testnet (Chain ID 1952)
+- **Chain:** X Layer Mainnet (Chain ID 196)
 - **Pay To:** `0x94A4365E6B7E79791258A3Fa071824BC2b75a394` (Parry Agent Wallet)
 
 ### Live Demo (No Wallet Required)
@@ -399,7 +399,7 @@ const deltaResult = computeDelta(price, entryPrice, tickLower, tickUpper, liquid
 
 // Step 5: Execute hedge if hedgeAmountUSD >= $1
 await hedgeExecutor.executeHedge(policyId, deltaResult, baseToken, stableToken, volBps);
-// -> ParryVault.recordHedge() confirmed on X Layer Testnet
+// -> ParryVault.recordHedge() confirmed on X Layer Mainnet (Chain 196)
 
 // Step 5b: Update on-chain volatility oracle (EVERY iteration in live mode)
 await hedgeExecutor.updateVolatilityDirect(baseToken, volState.realizedVolBps);
@@ -442,7 +442,7 @@ The Next.js frontend polls `/status` every **2 seconds** and renders:
 
 ### Prerequisites
 - Node.js 18+
-- X Layer Testnet wallet with test ETH
+- X Layer Mainnet wallet with OKB for gas
 
 ### 1. Clone and Deploy Contracts
 
@@ -501,7 +501,7 @@ cd frontend && npm install && npm run dev
 | `VAULT_ADDRESS` | `0x57C7...` | ParryVault contract address |
 | `AGENT_WALLET` | `0x94A4...` | Agent wallet address |
 | `RPC_URL` | `https://testrpc.xlayer.tech` | X Layer RPC |
-| `CHAIN_ID` | `1952` | X Layer Testnet |
+| `CHAIN_ID` | `196` | X Layer Mainnet |
 | `DEMO_MODE` | `false` | Paper mode (no real TXs) |
 | `LOOP_INTERVAL_MS` | `15000` | Agent loop interval |
 | `FORCE_COMPOUND_EVERY_N` | `2` | Compound every N iterations |
@@ -532,7 +532,7 @@ cd frontend && npm install && npm run dev
 | `block.number` dependence for expiry | Informational | Acceptable for block-based durations |
 | `expireProtection` callable by anyone | Informational | Intentional — permissionless expiry mirrors `checkAndSettle` pattern |
 | No global contract pause | Informational | Out of scope for hackathon deployment |
-| Owner capital withdrawal cap | Low | Testnet deployment — owner is deployer |
+| Owner capital withdrawal cap | Low | Mainnet deployment — owner is deployer |
 
 The audit confirms `ReentrancyGuard`, `SafeERC20`, `onlyAgent`, and `onlyOwner` patterns are correctly implemented throughout.
 

@@ -1,0 +1,8 @@
+{
+  "network": "xlayer_mainnet",
+  "chainId": 196,
+  "deployer": "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
+  "ParryVault": "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e",
+  "ProtectionCert": "0x87E3D9fcfA4eff229A65d045A7C741E49b581187",
+  "deployedAt": "2026-04-15T19:00:35.570Z"
+}
