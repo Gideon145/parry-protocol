@@ -692,14 +692,6 @@ export default function Home() {
             tooltip="Total hedge transactions + fee compounding events executed by the autonomous agent."
           />
           <MetricCard
-            label="ON-CHAIN CONFIRMED"
-            value={status.onChainTxCount && status.onChainTxCount > 0 ? `${status.onChainTxCount.toLocaleString()}` : "30,000+"}
-            subvalue="wallet nonce — X Layer Mainnet"
-            color="var(--amber)"
-            unit="TXS"
-            tooltip="Lifetime confirmed transactions from the Agentic Wallet on X Layer Mainnet (Chain 196). Verifiable on OKLink."
-          />
-          <MetricCard
             label="MAINNET TXS (LIVE)"
             value={mainnetTxCount > 0 ? mainnetTxCount.toLocaleString() : "..."}
             subvalue="X Layer mainnet · Chain 196"
