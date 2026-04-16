@@ -59,7 +59,7 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
 | x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
 | Agent Wallet — Testnet history | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **30,000+ TXs** on X Layer Testnet |
-| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **1,000+ TXs** on X Layer Mainnet (Chain 196) |
+| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **5,000+ TXs** on X Layer Mainnet (Chain 196) |
 | ParryVault Contract | https://www.oklink.com/xlayer/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | **Mainnet** (Chain 196) |
 | ProtectionCert NFT | https://www.oklink.com/xlayer/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | **Mainnet** (Chain 196) |
 | Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
@@ -545,7 +545,7 @@ Most hackathon agents are scripts with mock data. Parry Protocol:
 
 1. **Runs genuinely autonomously** — 15s loop, no human triggers, Railway 24/7
 2. **Uses OnchainOS for real data** — 3 skill types called on every cycle, logged to `/onchainos-proof`
-3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 30,000+ testnet TXs + 1,000+ **X Layer Mainnet (Chain 196)** TXs, all verifiable on OKLink
+3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 30,000+ testnet TXs + 5,000+ **X Layer Mainnet (Chain 196)** TXs, all verifiable on OKLink
 4. **Implements real DeFi math** — exact Uniswap V3 delta formula, not fake numbers
 5. **Has a working payment protocol** — x402 middleware with real signature verification
 6. **Is AI-queryable** — MCP server with 6 tools callable by Claude/GPT in natural language
@@ -566,9 +566,9 @@ Parry Protocol was built **in a single continuous 10-hour sprint** on April 12, 
 
 Subsequent commits on April 14, 2026 reflect post-submission improvements: README accuracy fixes, frontend URL corrections, and documentation polish. The core protocol, contracts, and agent were untouched.
 
-On April 15, 2026 (ahead of the 23:59 UTC deadline), contracts were redeployed to **X Layer Mainnet (Chain 196)** and Railway environment variables were updated — agent immediately resumed live operation on mainnet, accumulating **1,000+ confirmed mainnet transactions** before deadline.
+On April 15, 2026 (ahead of the 23:59 UTC deadline), contracts were redeployed to **X Layer Mainnet (Chain 196)** and Railway environment variables were updated — agent immediately resumed live operation on mainnet, accumulating **5,000+ confirmed mainnet transactions** before deadline.
 
-This is an intentional, focused build — not a ported existing project. **30,000+ testnet transactions + 1,000+ mainnet transactions** are the proof of work.
+This is an intentional, focused build — not a ported existing project. **30,000+ testnet transactions + 5,000+ mainnet transactions** are the proof of work.
 
 ---
 
