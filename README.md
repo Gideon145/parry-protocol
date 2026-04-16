@@ -91,7 +91,7 @@ curl -X POST https://radiant-recreation-production-f473.up.railway.app/protect/d
 `onChainTxCount` in `/status` is the **lifetime wallet nonce** of the Agentic Wallet (`0x94A4365...`) on X Layer Mainnet (Chain ID 196). This counter:
 - Is read directly from the chain via `provider.getTransactionCount(agentWallet)`
 - **Does not reset on Railway restarts** — it accumulates across all agent runs since first deployment on April 12, 2026
-- Currently **30,000+ confirmed transactions** on testnet + **1,000+ on X Layer Mainnet (Chain 196)**
+- Currently **30,000+ confirmed transactions** on testnet + **5,000+ on X Layer Mainnet (Chain 196)**
 
 `totalHedgesTx` and `iteration` reset on each Railway container restart. These are in-process counters, not on-chain state. The wallet nonce is the authoritative on-chain proof.
 
