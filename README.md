@@ -10,6 +10,7 @@
 [![x402 Server](https://img.shields.io/badge/x402%20Server-radiant--recreation--production-orange)](https://radiant-recreation-production-f473.up.railway.app/payment-info)
 [![X Layer Mainnet](https://img.shields.io/badge/Chain-X%20Layer%20Mainnet%20196-brightgreen)](https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394)
 [![Audited](https://img.shields.io/badge/Audited-ChainGPT_AI-00c853)](https://app.chaingpt.org/smart-contract-auditor)
+[![OKX AI](https://img.shields.io/badge/OKX_AI-Listed_%235062-black?style=flat)](https://www.okx.ai/agents/5062)
 
 ---
 
@@ -59,7 +60,7 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
 | x402 Server | https://radiant-recreation-production-f473.up.railway.app/payment-info | Live |
 | Agent Wallet — Testnet history | https://oklink.com/x-layer-testnet/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **30,000+ TXs** on X Layer Testnet |
-| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **5,000+ TXs** on X Layer Mainnet (Chain 196) |
+| Agent Wallet — **Mainnet LIVE** | https://www.oklink.com/xlayer/address/0x94A4365E6B7E79791258A3Fa071824BC2b75a394 | **86,461 TXs** (19,104 iterations) on X Layer Mainnet (Chain 196) |
 | ParryVault Contract | https://www.oklink.com/xlayer/address/0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e | **Mainnet** (Chain 196) |
 | ProtectionCert NFT | https://www.oklink.com/xlayer/address/0x87E3D9fcfA4eff229A65d045A7C741E49b581187 | **Mainnet** (Chain 196) |
 | Demo Video | https://youtu.be/HAIuoL-LiIA | Submitted |
@@ -545,12 +546,23 @@ Most hackathon agents are scripts with mock data. Parry Protocol:
 
 1. **Runs genuinely autonomously** — 15s loop, no human triggers, Railway 24/7
 2. **Uses OnchainOS for real data** — 3 skill types called on every cycle, logged to `/onchainos-proof`
-3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 30,000+ testnet TXs + 5,000+ **X Layer Mainnet (Chain 196)** TXs, all verifiable on OKLink
+3. **Generates real on-chain TXs** — `updateVolatility()` every loop = 30,000+ testnet TXs + 86,461 **X Layer Mainnet (Chain 196)** TXs, all verifiable on OKLink
 4. **Implements real DeFi math** — exact Uniswap V3 delta formula, not fake numbers
-5. **Has a working payment protocol** — x402 middleware with real signature verification
+5. **Has a working payment protocol** — x402 middleware with real signature verification, validated by OKX engineering
 6. **Is AI-queryable** — MCP server with 6 tools callable by Claude/GPT in natural language
 7. **Has transferable on-chain artifacts** — ERC-721 Protection Cert NFTs
 8. **Has a front-end demo of every feature** — status badges, AgentChat, x402 button, terminal, evidence links
+9. **Listed on OKX AI Marketplace** — ASP #5062, validated for x402 v2 compliance, live on X Layer Mainnet
+
+---
+
+## OKX AI Marketplace
+
+**Parry is listed as ASP #5062 on the OKX AI Marketplace.** [View listing →](https://www.okx.ai/agents/5062)
+
+After deploying the original Build-X submission, Parry was registered as an Agent Service Provider in the OKX A2A marketplace. The listing required x402 payment endpoint validation by OKX engineering — a full compliance sweep across all payment headers, EIP-3009 settlement, and protocol spec adherence. Parry passed.
+
+This validates that the x402 payment rail, OnchainOS skill integrations, and autonomous agent architecture are production-grade — not hackathon demos, but deployable infrastructure on the same chain the marketplace runs on.
 
 ---
 
@@ -566,7 +578,7 @@ Parry Protocol was built **in a single continuous 10-hour sprint** on April 12, 
 
 Subsequent commits on April 14, 2026 reflect post-submission improvements: README accuracy fixes, frontend URL corrections, and documentation polish. The core protocol, contracts, and agent were untouched.
 
-On April 15, 2026 (ahead of the 23:59 UTC deadline), contracts were redeployed to **X Layer Mainnet (Chain 196)** and Railway environment variables were updated — agent immediately resumed live operation on mainnet, accumulating **5,000+ confirmed mainnet transactions** before deadline.
+On April 15, 2026 (ahead of the 23:59 UTC deadline), contracts were redeployed to **X Layer Mainnet (Chain 196)** and Railway environment variables were updated — agent immediately resumed live operation on mainnet, accumulating **86,461 confirmed mainnet transactions** and **19,104 autonomous iterations** as of July 16, 2026. On July 15, 2026, Parry was listed as ASP #5062 on the OKX AI Marketplace after passing x402 compliance validation by OKX engineering.
 
 This is an intentional, focused build — not a ported existing project. **30,000+ testnet transactions + 5,000+ mainnet transactions** are the proof of work.
 
