@@ -4,7 +4,6 @@
 
 > *"Don't just earn fees. Keep them."*
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-frontend--mu--three--93.vercel.app-cyan)](https://frontend-mu-three-93.vercel.app)
 [![Agent Status](https://img.shields.io/badge/Agent%20API-parry--protocol--production.up.railway.app-green)](https://parry-protocol-production.up.railway.app/status)
 [![MCP Server](https://img.shields.io/badge/MCP%20Server-ample--wisdom--production-purple)](https://ample-wisdom-production-f4c9.up.railway.app/tools)
 [![x402 Server](https://img.shields.io/badge/x402%20Server-radiant--recreation--production-orange)](https://radiant-recreation-production-f473.up.railway.app/payment-info)
@@ -54,7 +53,6 @@ Parry runs an autonomous agent loop every **15 seconds** that:
 
 | Service | URL | Status |
 |---|---|---|
-| Frontend | https://frontend-mu-three-93.vercel.app | Live |
 | Agent API | https://parry-protocol-production.up.railway.app/status | Live |
 | OnchainOS Proof | https://parry-protocol-production.up.railway.app/onchainos-proof | Live |
 | MCP Server | https://ample-wisdom-production-f4c9.up.railway.app/tools | Live |
