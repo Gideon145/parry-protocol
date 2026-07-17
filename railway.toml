@@ -1,8 +1,8 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd agent && npm install && npm run build"
+buildCommand = "cd agent && npm install"
 
 [deploy]
-startCommand = "node agent/dist/index.js"
+startCommand = "cd agent && npx tsx src/index.ts"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5

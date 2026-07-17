@@ -51,6 +51,63 @@ interface ActiveProtection {
 const activeProtections = new Map<string, ActiveProtection>();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// x402 v2 Payment Middleware (OKX Marketplace compliant)
+// ─────────────────────────────────────────────────────────────────────────────
+function x402Middleware(req: Request, res: Response, next: NextFunction) {
+  // Check for PAYMENT-SIGNATURE at multiple locations
+  const paySig = req.headers['payment-signature']
+    || req.headers['x-payment-signature']
+    || req.headers['x-payment-authorization']
+    || req.headers['authorization'];
+
+  if (!paySig) {
+    // Return 402 with x402 v2 PAYMENT-REQUIRED header (base64-encoded)
+    const challenge = {
+      x402Version: 2,
+      resource: {
+        url: `https://parry-protocol-production.up.railway.app${req.path}`,
+        description: 'Uniswap V3 LP protection — real-time impermanent loss analytics and hedging',
+        mimeType: 'application/json',
+      },
+      accepts: [{
+        scheme: 'exact',
+        network: 'eip155:196',
+        asset: '0x779ded0c9e1022225f8e0630b35a9b54be713736',
+        amount: '100000',
+        payTo: AGENT_WALLET || '0x94A4365E6B7E79791258A3Fa071824BC2b75a394',
+        maxTimeoutSeconds: 300,
+        extra: { name: 'USD₮0', version: '1' },
+      }],
+    };
+    const challengeB64 = Buffer.from(JSON.stringify(challenge)).toString('base64');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE');
+    res.setHeader('PAYMENT-REQUIRED', challengeB64);
+    res.status(402).json(challenge);
+    return;
+  }
+
+  // Verify x402 v2 payment
+  try {
+    const raw = String(paySig).replace(/^Bearer\s+/i, '').replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = JSON.parse(Buffer.from(raw, 'base64').toString('utf-8'));
+    const auth = decoded.payload?.authorization || decoded.authorization || decoded;
+    const from = auth.from || decoded.payer;
+
+    if (!from) {
+      res.status(401).json({ error: 'Invalid x402 authorization' });
+      return;
+    }
+    console.log(`[x402] Payment authorized from ${from}`);
+    (req as any).paymentAmount = auth.value || decoded.amount;
+    (req as any).payer = from;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid x402 authorization' });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Routes
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -58,7 +58,12 @@ export class FeeCompounder {
     );
 
     if (!collectResult.success) {
-      logger.warn(`[FeeCompounder] Fee collection failed: ${collectResult.error}`);
+      // Throttle: only log every 10th failure to avoid log spam
+      if (!this._failCount) (this as any)._failCount = 0;
+      (this as any)._failCount++;
+      if ((this as any)._failCount % 10 === 1) {
+        logger.warn(`[FeeCompounder] Fee collection skipped (onchainos CLI not available on Railway — agent runs headless)`);
+      }
       return { compounded: false };
     }
 

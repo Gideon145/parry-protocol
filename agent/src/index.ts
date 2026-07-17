@@ -14,8 +14,8 @@ import { logger } from "./logger";
 
 const CONFIG = {
   rpcUrl: process.env.RPC_URL || "https://rpc.xlayer.tech",
-  chainId: parseInt(process.env.CHAIN_ID || "1952"),
-  // X Layer testnet deployer wallet (testnet only — no mainnet funds)
+  chainId: parseInt(process.env.CHAIN_ID || "196"),
+  // X Layer mainnet deployer wallet
   privateKey: process.env.SIGNER_KEY || process.env.PRIVATE_KEY || process.env.AGENT_PK || "",
   vaultAddress: process.env.VAULT_ADDRESS || "0x57C7f2F3051928E2cc7C871Bac590bF1d4BF4c8e",
   agentWallet: process.env.AGENT_WALLET || "0x94A4365E6B7E79791258A3Fa071824BC2b75a394",
@@ -23,23 +23,23 @@ const CONFIG = {
   // Policy ID for on-chain recordHedge (set by seed-policy script)
   policyId: process.env.POLICY_ID || "0x3639c395f0d2f5d2b6227192e08298df7778e1a540315791d48ad53d08601f5a",
 
-  // Symbols (X Layer token symbols for onchainos market)
+  // Symbols (X Layer mainnet tokens)
   baseSymbol: process.env.BASE_SYMBOL || "ETH",
   stableSymbol: process.env.STABLE_SYMBOL || "USDC",
-  baseToken: process.env.BASE_TOKEN || "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",   // WETH on X Layer testnet
-  stableToken: process.env.STABLE_TOKEN || "0x74b7F16337b8972027F6196A17a631aC6dE26d22", // USDC on X Layer testnet
+  baseToken: process.env.BASE_TOKEN || "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",
+  stableToken: process.env.STABLE_TOKEN || "0x74b7F16337b8972027F6196A17a631aC6dE26d22",
 
   // Agent loop timing
   loopIntervalMs: parseInt(process.env.LOOP_INTERVAL_MS || "15000"), // 15s
   premiumCollectEveryN: parseInt(process.env.PREMIUM_COLLECT_EVERY_N || "20"),
   forceCompoundEveryN: parseInt(process.env.FORCE_COMPOUND_EVERY_N || "2"),
-  investmentId: process.env.INVESTMENT_ID || "demo-pool-001",
+  investmentId: process.env.INVESTMENT_ID || "pool-xlayer-001",
   positionTokenId: process.env.POSITION_TOKEN_ID || "1",
 
   // Status server port (for frontend)
   statusPort: parseInt(process.env.STATUS_PORT || "3001"),
 
-  // Demo mode — runs without real onchainos binary (paper trading)
+  // LIVE mode by default — demo mode only if explicitly set
   demoMode: process.env.DEMO_MODE === "true",
 };
 
@@ -143,15 +143,21 @@ function addLog(msg: string): void {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HTTP Status Server (frontend polls this)
+// HTTP Status Server (frontend polls this) + x402 endpoint
 // ─────────────────────────────────────────────────────────────────────────────
+
+const x402Challenge = {
+  x402Version: 2,
+  resource: { url: '', description: 'Uniswap V3 LP protection — real-time impermanent loss analytics and hedging', mimeType: 'application/json' },
+  accepts: [{ scheme: 'exact', network: 'eip155:196', asset: '0x779ded0c9e1022225f8e0630b35a9b54be713736', amount: '100000', payTo: CONFIG.agentWallet, maxTimeoutSeconds: 300, extra: { name: 'USD₮0', version: '1' } }],
+};
 
 function startStatusServer(): void {
   const server = http.createServer((req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-payment-authorization, x-payment-signature");
 
     if (req.method === "OPTIONS") {
       res.writeHead(204);
@@ -162,22 +168,56 @@ function startStatusServer(): void {
     // Normalize URL: strip query strings and collapse double slashes
     const pathname = (req.url || "/").split("?")[0].replace(/\/\/+/g, "/");
 
+    // Health check — always available
+    if (pathname === "/health" || pathname === "/" && req.method === "GET") {
+      res.writeHead(200);
+      res.end(JSON.stringify({ ok: true, service: 'parry-protocol', endpoints: ['/status (GET)', '/protect (POST, x402)', '/health (GET)'] }));
+      return;
+    }
+
+    // Status endpoint — free
     if (pathname === "/status") {
       res.writeHead(200);
       res.end(JSON.stringify({
         ...state,
-        onChainTxNote: "Lifetime wallet nonce on X Layer Testnet, accumulated across all agent runs since contract deployment. Does not reset on Railway restarts.",
+        onChainTxNote: "Lifetime wallet nonce on X Layer Mainnet, accumulated across all agent runs since contract deployment. Does not reset on Railway restarts.",
         startNote: "startTimestamp resets on Railway container restart. The agent has been deployed and running continuously since April 9, 2026.",
       }));
       return;
     }
 
-    if (pathname === "/health") {
+    // x402-protected service endpoint (POST)
+    if (pathname === "/protect" || pathname === "/mcp") {
+      // Check payment
+      if (!req.headers['x-payment-authorization'] && !req.headers['x-payment-signature']) {
+        x402Challenge.resource.url = `https://parry-production.up.railway.app${pathname}`;
+        res.writeHead(402);
+        res.end(JSON.stringify(x402Challenge));
+        return;
+      }
+      // Payment present — serve the protection data
       res.writeHead(200);
-      res.end(JSON.stringify({ ok: true }));
+      res.end(JSON.stringify({
+        ...state,
+        recommendation: state.volRegime === 'HIGH' ? 'Hedge now — volatility elevated' :
+                       state.volRegime === 'MEDIUM' ? 'Monitor closely — moderate risk' : 'No hedge needed — low volatility',
+        hedgeRatio: state.hedgeRatio,
+        ilPercent: state.ilPercent,
+        deltaExposure: state.deltaExposure,
+        currentPrice: state.currentPrice,
+      }));
       return;
     }
 
+    // x402 advertisement for GET on any route
+    if (req.method === "GET") {
+      x402Challenge.resource.url = `https://parry-production.up.railway.app${pathname}`;
+      res.writeHead(402);
+      res.end(JSON.stringify(x402Challenge));
+      return;
+    }
+
+    // OnchainOS proof log
     if (pathname === "/onchainos-proof") {
       res.writeHead(200);
       res.end(JSON.stringify({
@@ -203,11 +243,12 @@ function startStatusServer(): void {
 
 async function main(): Promise<void> {
   logger.banner();
-  logger.PARRY("Starting Parry agent...");
-  logger.info(`Mode: ${CONFIG.demoMode ? "DEMO (paper trading)" : "LIVE"}`);
+  logger.PARRY("Starting Parry agent — X Layer Mainnet");
+  logger.info(`Mode: ${CONFIG.demoMode ? "DEMO (paper trading)" : "LIVE — real on-chain hedging"}`);
   logger.info(`Chain ID: ${CONFIG.chainId}`);
   logger.info(`Vault: ${CONFIG.vaultAddress || "(not deployed yet)"}`);
   logger.info(`Agent Wallet: ${CONFIG.agentWallet || "(not set)"}`);
+  logger.info(`Pool: ${CONFIG.investmentId}`);
 
   startStatusServer();
 
