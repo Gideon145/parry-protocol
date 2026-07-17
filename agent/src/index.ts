@@ -187,10 +187,13 @@ function startStatusServer(): void {
     }
 
     // x402-protected service endpoint (POST)
-    if (pathname === "/protect" || pathname === "/mcp") {
+    if (pathname === "/protect" || pathname === "/mcp" || pathname === "/protect/activate") {
       // Check payment
-      if (!req.headers['x-payment-authorization'] && !req.headers['x-payment-signature']) {
-        x402Challenge.resource.url = `https://parry-production.up.railway.app${pathname}`;
+      if (!req.headers['x-payment-authorization'] && !req.headers['x-payment-signature'] && !req.headers['payment-signature']) {
+        x402Challenge.resource.url = `https://parry-protocol-production.up.railway.app${pathname}`;
+        const challengeB64 = Buffer.from(JSON.stringify(x402Challenge)).toString('base64');
+        res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE');
+        res.setHeader('PAYMENT-REQUIRED', challengeB64);
         res.writeHead(402);
         res.end(JSON.stringify(x402Challenge));
         return;
@@ -211,7 +214,10 @@ function startStatusServer(): void {
 
     // x402 advertisement for GET on any route
     if (req.method === "GET") {
-      x402Challenge.resource.url = `https://parry-production.up.railway.app${pathname}`;
+      x402Challenge.resource.url = `https://parry-protocol-production.up.railway.app${pathname}`;
+      const challengeB64 = Buffer.from(JSON.stringify(x402Challenge)).toString('base64');
+      res.setHeader('Access-Control-Expose-Headers', 'PAYMENT-REQUIRED, PAYMENT-RESPONSE');
+      res.setHeader('PAYMENT-REQUIRED', challengeB64);
       res.writeHead(402);
       res.end(JSON.stringify(x402Challenge));
       return;
